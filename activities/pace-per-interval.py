@@ -2,6 +2,8 @@
 import plotly
 import plotly.graph_objs as go
 import math
+import tempfile
+import pathlib
 
 def secs_to_minsec(s):
     s = math.floor(s)
