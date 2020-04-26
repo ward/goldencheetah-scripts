@@ -37,9 +37,9 @@ def workout_importance(workout):
 
 
 def write_day(f, activities, idx):
-    # Only consider first activity for now
-    # TODO Maybe a pie chart? or a cluster like strava
-    date = activities[0][0]
+    # TODO Maybe a pie chart for multiple activities? or a cluster like strava
+    if len(activities) == 0:
+        return
     distance = 0
     workout = ''
     for activity in activities:
@@ -68,8 +68,8 @@ def write_week(f, activities):
             '</svg>'
             )
     f.write(header)
-    for idx, day in enumerate(activities):
-        write_day(f, day, idx)
+    for idx, day in enumerate(sorted(activities)):
+        write_day(f, activities[day], idx)
     f.write(footer)
 
 
@@ -90,8 +90,8 @@ def write_training_log(f, activities):
     f.write(header_a)
     write_css(f)
     f.write(header_b)
-    for week in activities:
-        write_week(f, week)
+    for week in reversed(sorted(activities)):
+        write_week(f, activities[week])
     f.write(footer)
 
 
@@ -147,40 +147,50 @@ def write_css(f):
     f.write(css)
 
 
-def group_function(activity):
-    act_date, workout, distance = activity[0]
-    # Iso year and week
-    return act_date.strftime("%G-%V")
+def days_range(start_day, end_day):
+    return [
+        start_day + datetime.timedelta(days=days)
+        for days in range((end_day - start_day).days + 1)
+    ]
 
 
 def group_by_week(activities):
-    activities_by_day = []
-    for _day, activities_in_day in itertools.groupby(activities, lambda activity: activity[0]):
-        activities_by_day.append(list(activities_in_day))
+    all_days = days_range(activities[0][0], activities[-1][0])
+    activities_by_day = {}
+    for day in all_days:
+        activities_by_day[day] = list()
 
-    activities_by_week = []
-    for _week, activities_in_week in itertools.groupby(activities_by_day, group_function):
-        activities_by_week.append(list(activities_in_week))
+    for activity in activities:
+        activities_by_day[activity[0]].append(activity)
 
-    return list(reversed(activities_by_week))
+    activities_by_week = {}
+    for day, activities in activities_by_day.items():
+        week = day.strftime("%G-%V")
+        try:
+            activities_by_week[week]
+        except KeyError:
+            activities_by_week[week] = {}
+        activities_by_week[week][day] = activities
+
+    return activities_by_week
 
 
 TEST_ACTIVITIES = [
-        (datetime.date(2020, 4, 12), 'recovery', 10),
+        (datetime.date(2020, 3, 30), 'race', 42.195),
+        # (datetime.date(2020, 3, 31), 'recovery', 10),
+        (datetime.date(2020, 4, 1), 'repetition', 17),
+        (datetime.date(2020, 4, 2), 'recovery', 10),
+        (datetime.date(2020, 4, 3), 'ga', 14),
+        (datetime.date(2020, 4, 4), 'threshold', 16.5),
+        (datetime.date(2020, 4, 5), 'recovery', 10),
+        (datetime.date(2020, 4, 6), 'endurance', 22.5),
+        (datetime.date(2020, 4, 7), 'recovery', 10),
+        (datetime.date(2020, 4, 8), 'repetition', 17),
+        # (datetime.date(2020, 4, 9), 'recovery', 10),
+        # (datetime.date(2020, 4, 10), 'ga', 14),
         (datetime.date(2020, 4, 11), 'threshold', 16.5),
         (datetime.date(2020, 4, 11), 'warmup', 10),
-        (datetime.date(2020, 4, 10), 'ga', 14),
-        (datetime.date(2020, 4, 9), 'recovery', 10),
-        (datetime.date(2020, 4, 8), 'repetition', 17),
-        (datetime.date(2020, 4, 7), 'recovery', 10),
-        (datetime.date(2020, 4, 6), 'endurance', 22.5),
-        (datetime.date(2020, 4, 5), 'recovery', 10),
-        (datetime.date(2020, 4, 4), 'threshold', 16.5),
-        (datetime.date(2020, 4, 3), 'ga', 14),
-        (datetime.date(2020, 4, 2), 'recovery', 10),
-        (datetime.date(2020, 4, 1), 'repetition', 17),
-        (datetime.date(2020, 3, 31), 'recovery', 10),
-        (datetime.date(2020, 3, 30), 'race', 42.195)
+        (datetime.date(2020, 4, 12), 'recovery', 10),
         ]
 
 
