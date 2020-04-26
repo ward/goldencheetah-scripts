@@ -182,7 +182,7 @@ try:
     DATA = GC.seasonMetrics()
     runs = []
     for i in range(len(DATA["Distance"])):
-        if data["Sport"][i] == "Run":
+        if DATA["Sport"][i] == "Run":
             run = (DATA["date"][i], DATA["Workout_Code"][i], DATA["Distance"][i])
             runs.append(run)
 except NameError:
