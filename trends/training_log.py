@@ -48,13 +48,14 @@ def write_day(f, activities, idx):
         if workout == '' or workout_importance(workout) < workout_importance(work):
             workout = work
     day = (
-            '<g class="day workout-{}">'
-            '<circle cx="{}" cy="80" r="{}" />'
+            '<g class="day workout-{}" transform="translate({},80)">'
+            '<circle r="{}" />'
+            '<text class="distance">{}</text>'
             '</g>'
             )
     r = radius_from_distance(distance)
     # print('debug', distance, 'km =', r, 'pixel radius')
-    f.write(day.format(workout.lower(), idx * 100 + 50, r))
+    f.write(day.format(workout.lower(), idx * 100 + 50, r, distance))
 
 
 def write_week(f, activities):
@@ -135,6 +136,11 @@ def write_css(f):
             '}'
             'g.workout-cv circle {'
             'fill: var(--cv);'
+            '}'
+            'g.day text.distance {'
+            'text-anchor: middle;'
+            'translate: 0px 5px;'
+            'font-family: sans-serif;'
             '}'
             '</style>'
             )
