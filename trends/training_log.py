@@ -4,8 +4,8 @@ import datetime
 import tempfile
 import pathlib
 
-# TODO Everything ends up left aligned cause empty days get skipped. Not
-# noticeable if you don't skip any day.
+# TODO If the range you are plotting does not start on a monday, it still ends
+# up left aligned. Try for example with 1 january 2020 as start.
 
 
 def radius_from_distance(distance):
@@ -49,7 +49,7 @@ def write_day(f, activities, idx):
     day = (
         '<g class="day workout-{}" transform="translate({},80)">'
         '<circle r="{}" />'
-        '<text class="distance">{}</text>'
+        '<text class="distance">{:.1f}</text>'
         "</g>"
     )
     radius = radius_from_distance(distance)
