@@ -4,9 +4,6 @@ import datetime
 import tempfile
 import pathlib
 
-# TODO If the range you are plotting does not start on a monday, it still ends
-# up left aligned. Try for example with 1 january 2020 as start.
-
 
 def radius_from_distance(distance):
     """No logic to this formula, just playing around with numbers."""
@@ -132,6 +129,10 @@ def write_css(f):
 
 
 def days_range(start_day, end_day):
+    # Set start_day to the Monday (.weekday() is 0 based)
+    start_day = start_day - datetime.timedelta(days=start_day.weekday())
+    # Set end_day to the Sunday
+    end_day = end_day + datetime.timedelta(days=6 - end_day.weekday())
     return [
         start_day + datetime.timedelta(days=days)
         for days in range((end_day - start_day).days + 1)
