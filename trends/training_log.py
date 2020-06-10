@@ -72,9 +72,32 @@ def write_day(f, activities, idx):
     )
 
 
+def sum_week_distance(activities):
+    """Given a week of activities, sums up all the distances and returns it"""
+    distance = 0
+    for day in activities:
+        for activity in activities[day]:
+            _, _, dist = activity
+            distance = distance + dist
+    return distance
+
+
 def write_week(f, activities):
+    overview = (
+        '<div class="week">'
+        '<div class="overview">'
+        "<time>{} - {}</time>"
+        '<p class="distance">{:.1f} km</p>'
+        # "<p>{:d} hrs {:d} minutes</p>"
+        "</div>"
+    )
+    days = [*activities]
+    first_day = days[0]
+    last_day = days[-1]
+    overview = overview.format(first_day, last_day, sum_week_distance(activities))
     header = '<svg height="160" width="825">' '<g class="days">'
-    footer = "</g>" "</svg>"
+    footer = "</g>" "</svg>" "</div>"
+    f.write(overview)
     f.write(header)
     for idx, day in enumerate(sorted(activities)):
         write_day(f, activities[day], idx)
@@ -106,6 +129,9 @@ def write_css(f):
         "--threshold: #009e73;"
         "--cv: #5afff2;"
         "}"
+        "body {"
+        "font-family: sans-serif;"
+        "}"
         "circle {"
         "stroke: black;"
         "}"
@@ -128,10 +154,12 @@ def write_css(f):
         "g.workout-cooldown circle {"
         "fill: var(--recovery);"
         "}"
-        "g.workout-repetition circle {"
+        "g.workout-repetition circle,"
+        "g.workout-speed circle {"
         "fill: var(--repetition);"
         "}"
-        "g.workout-threshold circle {"
+        "g.workout-threshold circle,"
+        "g.workout-tempo circle {"
         "fill: var(--threshold);"
         "}"
         "g.workout-cv circle {"
@@ -140,7 +168,22 @@ def write_css(f):
         "g.day text.distance {"
         "text-anchor: middle;"
         "translate: 0px 5px;"
-        "font-family: sans-serif;"
+        "}"
+        "div.week {"
+        "display: grid;"
+        'grid-template-areas: "overview days";'
+        "}"
+        "div.week div.overview {"
+        "grid-area: overview;"
+        "border-right: 1px dotted grey;"
+        "margin-right: 1em;"
+        "}"
+        "div.week div.overview p.distance {"
+        "font-size: 1.5em;"
+        "font-weight: bold;"
+        "}"
+        "div.week svg {"
+        "grid-area: days;"
         "}"
         "</style>"
     )
