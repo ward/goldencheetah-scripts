@@ -35,10 +35,10 @@ def workout_importance(workout):
 
 def text_summary_of_day(activities):
     text = ""
-    text += str(activities[0][0])
+    text += '<tspan x="-50" dy="1.2em">' + str(activities[0][0]) + "</tspan>"
     for activity in activities:
         _day, work, dist = activity
-        text += "\n{:.1f}km {}".format(dist, work)
+        text += '<tspan x="-50" dy="1.2em">{:.1f}km {}</tspan>'.format(dist, work)
     return text
 
 
@@ -55,9 +55,12 @@ def write_day(f, activities, idx):
             workout = work
     day = (
         '<g class="day workout-{}" transform="translate({},80)">'
-        "<title>{}</title>"
         '<circle r="{}" />'
         '<text class="distance">{:.1f}</text>'
+        '<g class="description">'
+        '<rect x="-50" y="-50"></rect>'
+        '<text x="-50" y="-50">{description}</text>'
+        "</g>"
         "</g>"
     )
     radius = radius_from_distance(distance)
@@ -65,9 +68,9 @@ def write_day(f, activities, idx):
         day.format(
             workout.lower(),
             idx * 100 + 50,
-            text_summary_of_day(activities),
             radius,
             distance,
+            description=text_summary_of_day(activities),
         )
     )
 
@@ -105,7 +108,7 @@ def write_week(f, activities):
 
 
 def write_training_log(f, activities):
-    header_a = "<!DOCTYPE html>" "<html>" "<head>"
+    header_a = "<!DOCTYPE html>" "<html>" "<head><title>Training Log</title>"
     header_b = "</head>" "<body>"
     footer = "</body>" "</html>"
     f.write(header_a)
@@ -132,37 +135,49 @@ def write_css(f):
         "body {"
         "font-family: sans-serif;"
         "}"
-        "circle {"
+        "circle, rect {"
         "stroke: black;"
         "}"
-        "g.workout-endurance circle {"
+        "g.workout-endurance circle,"
+        "g.workout-endurance rect {"
         "fill: var(--endurance);"
         "}"
-        "g.workout-ga circle {"
+        "g.workout-ga circle,"
+        "g.workout-ga rect {"
         "fill: var(--ga);"
         "}"
-        "g.workout-interval circle, g.workout-vo2max circle {"
+        "g.workout-interval circle, g.workout-vo2max circle,"
+        "g.workout-interval rect, g.workout-vo2max rect {"
         "fill: var(--interval);"
         "}"
-        "g.workout-race circle {"
+        "g.workout-race circle,"
+        "g.workout-race rect {"
         "fill: var(--race);"
         "stroke: gold;"
         "stroke-width: 3px;"
         "}"
         "g.workout-recovery circle,"
         "g.workout-warmup circle,"
-        "g.workout-cooldown circle {"
+        "g.workout-cooldown circle,"
+        "g.workout-recovery rect,"
+        "g.workout-warmup rect,"
+        "g.workout-cooldown rect {"
         "fill: var(--recovery);"
         "}"
         "g.workout-repetition circle,"
-        "g.workout-speed circle {"
+        "g.workout-speed circle,"
+        "g.workout-repetition rect,"
+        "g.workout-speed rect {"
         "fill: var(--repetition);"
         "}"
         "g.workout-threshold circle,"
-        "g.workout-tempo circle {"
+        "g.workout-tempo circle,"
+        "g.workout-threshold rect,"
+        "g.workout-tempo rect {"
         "fill: var(--threshold);"
         "}"
-        "g.workout-cv circle {"
+        "g.workout-cv circle,"
+        "g.workout-cv rect {"
         "fill: var(--cv);"
         "}"
         "g.day text.distance {"
@@ -172,11 +187,12 @@ def write_css(f):
         "div.week {"
         "display: grid;"
         'grid-template-areas: "overview days";'
+        "grid-template-columns: max-content auto;"
         "}"
         "div.week div.overview {"
         "grid-area: overview;"
         "border-right: 1px dotted grey;"
-        "margin-right: 1em;"
+        "padding-right: 1em;"
         "}"
         "div.week div.overview p.distance {"
         "font-size: 1.5em;"
@@ -184,6 +200,16 @@ def write_css(f):
         "}"
         "div.week svg {"
         "grid-area: days;"
+        "}"
+        "g.day g.description {"
+        "display: none;"
+        "}"
+        "g.description rect {"
+        "width: 100px;"
+        "height: 100px;"
+        "}"
+        "g.day:hover g.description {"
+        "display: inline;"
         "}"
         "</style>"
     )
