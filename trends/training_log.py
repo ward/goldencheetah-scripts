@@ -32,6 +32,15 @@ def workout_importance(workout):
     return importance.get(workout.lower(), 0)
 
 
+def text_summary_of_day(activities):
+    text = ""
+    text += str(activities[0][0])
+    for activity in activities:
+        _day, work, dist = activity
+        text += "\n{:.1f}km {}".format(dist, work)
+    return text
+
+
 def write_day(f, activities, idx):
     # TODO Maybe a pie chart for multiple activities? or a cluster like strava
     if len(activities) == 0:
@@ -45,12 +54,21 @@ def write_day(f, activities, idx):
             workout = work
     day = (
         '<g class="day workout-{}" transform="translate({},80)">'
+        "<title>{}</title>"
         '<circle r="{}" />'
         '<text class="distance">{:.1f}</text>'
         "</g>"
     )
     radius = radius_from_distance(distance)
-    f.write(day.format(workout.lower(), idx * 100 + 50, radius, distance))
+    f.write(
+        day.format(
+            workout.lower(),
+            idx * 100 + 50,
+            text_summary_of_day(activities),
+            radius,
+            distance,
+        )
+    )
 
 
 def write_week(f, activities):
