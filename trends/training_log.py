@@ -22,6 +22,7 @@ def workout_importance(workout):
         "race pace": 9,
         "cv": 8,
         "repetition": 7,
+        "speed": 7,
         "threshold": 6,
         "endurance": 5,
         "ga": 4,
