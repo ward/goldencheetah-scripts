@@ -4,19 +4,31 @@ import plotly.graph_objs as go
 import math
 import tempfile
 import pathlib
+import numpy as np
 
 
 def secs_to_minsec(s):
+    if math.isnan(s):
+        return s
     s = math.floor(s)
     m = math.floor(s / 60)
     s = s % 60
     return "{}:{:0>2}".format(m, s)
 
 
-# GC.activityIntervals is a dictionary where every entry gives a list of the metrics for every interval
+def speed_to_pace(kph):
+    """Take a speed in km per hour and turn it into a pace of minutes per km"""
+    # Avoid division by zero
+    if kph == 0:
+        return float('nan')
+    return 3600 / kph
+
+
+# GC.activityIntervals is a dictionary where every entry gives a list of the
+# metrics for every interval.
 intervals = GC.activityIntervals(type="USER")
 lap_speed = intervals["Average_Speed"]
-lap_speed = [3600 / s for s in lap_speed]
+lap_speed = [speed_to_pace(s) for s in lap_speed]
 lap_distances = intervals["Distance"]
 lap_names = intervals["name"]
 total_speed = GC.activityIntervals(type="ALL")["Average_Speed"][0]
@@ -26,7 +38,8 @@ lap_distances_acc = [0]
 for distance in lap_distances:
     lap_distances_acc.append(lap_distances_acc[-1] + distance)
 
-# We want the metric for an interval to be repeated for all points in the interval such that we can plot a sort of bar-line graph.
+# We want the metric for an interval to be repeated for all points in the
+# interval such that we can plot a sort of bar-line graph.
 # Create the arrays for all that
 filled_speed = []
 filled_distance = []
@@ -45,8 +58,8 @@ for ii in range(0, int(math.ceil(DISTANCE_STEP_SIZE * lap_distances_acc[-1]))):
 
 ###########################################
 # Making the ticks on the y-axis look nice
-y_ticks_start = math.floor(min(filled_speed) / 15)
-y_ticks_end = math.ceil(max(filled_speed) / 15)
+y_ticks_start = math.floor(np.nanmin(filled_speed) / 15)
+y_ticks_end = math.ceil(np.nanmax(filled_speed) / 15)
 y_ticks = [15 * i for i in range(y_ticks_start, y_ticks_end)]
 y_ticks_text = [secs_to_minsec(s) for s in y_ticks]
 ###########################################
