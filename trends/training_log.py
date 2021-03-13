@@ -37,9 +37,15 @@ def text_summary_of_day(activities):
     text = ""
     text += '<tspan x="-50" dy="1.2em">' + str(activities[0][0]) + "</tspan>"
     for activity in activities:
-        _day, work, dist = activity
+        _day, work, dist, time = activity
         text += '<tspan x="-50" dy="1.2em">{:.1f}km {}</tspan>'.format(dist, work)
     return text
+
+
+def seconds_to_hours_minutes(seconds):
+    hours = math.floor(seconds / 3600)
+    minutes = math.floor((seconds - (hours * 3600)) / 60)
+    return (hours, minutes)
 
 
 def write_day(f, activities, idx):
@@ -49,7 +55,7 @@ def write_day(f, activities, idx):
     distance = 0
     workout = ""
     for activity in activities:
-        day, work, dist = activity
+        day, work, dist, time = activity
         distance = distance + dist
         if workout == "" or workout_importance(workout) < workout_importance(work):
             workout = work
@@ -75,14 +81,16 @@ def write_day(f, activities, idx):
     )
 
 
-def sum_week_distance(activities):
-    """Given a week of activities, sums up all the distances and returns it"""
+def sum_week_distance_time(activities):
+    """Given a week of activities, sums up all the distances and times, and returns them"""
     distance = 0
+    time = 0
     for day in activities:
         for activity in activities[day]:
-            _, _, dist = activity
+            _, _, dist, t = activity
             distance = distance + dist
-    return distance
+            time = time + t
+    return (distance, time)
 
 
 def write_week(f, activities):
@@ -91,13 +99,15 @@ def write_week(f, activities):
         '<div class="overview">'
         "<time>{} - {}</time>"
         '<p class="distance">{:.1f} km</p>'
-        # "<p>{:d} hrs {:d} minutes</p>"
+        '<p class="time">{:d}h{:02d}</p>'
         "</div>"
     )
     days = [*activities]
     first_day = days[0]
     last_day = days[-1]
-    overview = overview.format(first_day, last_day, sum_week_distance(activities))
+    distance, time = sum_week_distance_time(activities)
+    hours, minutes = seconds_to_hours_minutes(time)
+    overview = overview.format(first_day, last_day, distance, hours, minutes)
     header = '<svg height="160" width="825">' '<g class="days">'
     footer = "</g>" "</svg>" "</div>"
     f.write(overview)
@@ -280,7 +290,12 @@ try:
     runs = []
     for i in range(len(DATA["Distance"])):
         if DATA["Sport"][i] == "Run":
-            run = (DATA["date"][i], DATA["Workout_Code"][i], DATA["Distance"][i])
+            run = (
+                DATA["date"][i],
+                DATA["Workout_Code"][i],
+                DATA["Distance"][i],
+                DATA["Time_Moving"][i],
+            )
             runs.append(run)
 except NameError:
     runs = TEST_ACTIVITIES
