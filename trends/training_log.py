@@ -33,12 +33,15 @@ def workout_importance(workout):
     return importance.get(workout.lower(), 0)
 
 
-def text_summary_of_day(activities):
+def text_summary_of_day(activities_for_the_day):
     text = ""
-    text += '<tspan x="-50" dy="1.2em">' + str(activities[0][0]) + "</tspan>"
-    for activity in activities:
-        _day, work, dist, time = activity
-        text += '<tspan x="-50" dy="1.2em">{:.1f}km {}</tspan>'.format(dist, work)
+    text += (
+        '<tspan x="-50" dy="1.2em">' + str(activities_for_the_day[0].day) + "</tspan>"
+    )
+    for activity in activities_for_the_day:
+        text += '<tspan x="-50" dy="1.2em">{:.1f}km {}</tspan>'.format(
+            activity.distance, activity.workout_code
+        )
     return text
 
 
@@ -49,16 +52,22 @@ def seconds_to_hours_minutes(seconds):
 
 
 def write_day(f, activities, idx):
+    """Given a list of activities for a day, writes the HTML for it.
+    Requires an idx, i.e., the day's number in the week, to know how
+    far left/right on the page things need to end up."""
     # TODO Maybe a pie chart for multiple activities? or a cluster like strava
     if len(activities) == 0:
         return
     distance = 0
     workout = ""
     for activity in activities:
-        day, work, dist, time = activity
-        distance = distance + dist
-        if workout == "" or workout_importance(workout) < workout_importance(work):
-            workout = work
+        distance = distance + activity.distance
+        # Deciding the "main" colour to use for a given day based on which
+        # run type is the most interesting.
+        if workout == "" or workout_importance(workout) < workout_importance(
+            activity.workout_code
+        ):
+            workout = activity.workout_code
     day = (
         '<g class="day workout-{}" transform="translate({},80)">'
         '<circle r="{}" />'
@@ -82,18 +91,20 @@ def write_day(f, activities, idx):
 
 
 def sum_week_distance_time(activities):
-    """Given a week of activities, sums up all the distances and times, and returns them"""
+    """Given a week of activities, i.e. a dict of day->activitiesforthatday,
+    sums up all the distances and times, and returns them"""
     distance = 0
     time = 0
     for day in activities:
         for activity in activities[day]:
-            _, _, dist, t = activity
-            distance = distance + dist
-            time = time + t
+            distance = distance + activity.distance
+            time = time + activity.time_moving
     return (distance, time)
 
 
 def write_week(f, activities):
+    """Handles writing for a certain week. Input is a dict of
+    day -> activities for that day."""
     overview = (
         '<div class="week">'
         '<div class="overview">'
@@ -118,6 +129,8 @@ def write_week(f, activities):
 
 
 def write_training_log(f, activities):
+    """Creates HTML page of a training log.
+    Activities are in the format as returned by group_by_week."""
     header_a = "<!DOCTYPE html>" "<html>" "<head><title>Training Log</title>"
     header_b = "</head>" "<body>"
     footer = "</body>" "</html>"
@@ -246,13 +259,16 @@ def days_range(start_day, end_day):
 
 
 def group_by_week(activities):
-    all_days = days_range(activities[0][0], activities[-1][0])
+    """Given a list of activities, returns a dict with
+        week -> dict in which
+                day -> activities for that day."""
+    all_days = days_range(activities[0].day, activities[-1].day)
     activities_by_day = {}
     for day in all_days:
         activities_by_day[day] = list()
 
     for activity in activities:
-        activities_by_day[activity[0]].append(activity)
+        activities_by_day[activity.day].append(activity)
 
     activities_by_week = {}
     for day, activities in activities_by_day.items():
@@ -266,22 +282,30 @@ def group_by_week(activities):
     return activities_by_week
 
 
+class Activity:
+    def __init__(self, day, workout_code, distance, time_moving):
+        self.day = day
+        self.workout_code = workout_code
+        self.distance = distance
+        self.time_moving = time_moving
+
+
 TEST_ACTIVITIES = [
-    (datetime.date(2020, 3, 30), "race", 42.195),
-    # (datetime.date(2020, 3, 31), 'recovery', 10),
-    (datetime.date(2020, 4, 1), "repetition", 17),
-    (datetime.date(2020, 4, 2), "recovery", 10),
-    (datetime.date(2020, 4, 3), "ga", 14),
-    (datetime.date(2020, 4, 4), "threshold", 16.5),
-    (datetime.date(2020, 4, 5), "recovery", 10),
-    (datetime.date(2020, 4, 6), "endurance", 22.5),
-    (datetime.date(2020, 4, 7), "recovery", 10),
-    (datetime.date(2020, 4, 8), "repetition", 17),
-    # (datetime.date(2020, 4, 9), 'recovery', 10),
-    # (datetime.date(2020, 4, 10), 'ga', 14),
-    (datetime.date(2020, 4, 11), "threshold", 16.5),
-    (datetime.date(2020, 4, 11), "warmup", 10),
-    (datetime.date(2020, 4, 12), "recovery", 10),
+    Activity(datetime.date(2020, 3, 30), "race", 42.195, 1000),
+    Activity(datetime.date(2020, 3, 31), "recovery", 10, 1000),
+    Activity(datetime.date(2020, 4, 1), "repetition", 17, 1000),
+    Activity(datetime.date(2020, 4, 2), "recovery", 10, 1000),
+    Activity(datetime.date(2020, 4, 3), "ga", 14, 1000),
+    Activity(datetime.date(2020, 4, 4), "threshold", 16.5, 1000),
+    Activity(datetime.date(2020, 4, 5), "recovery", 10, 1000),
+    Activity(datetime.date(2020, 4, 6), "endurance", 22.5, 1000),
+    Activity(datetime.date(2020, 4, 7), "recovery", 10, 1000),
+    Activity(datetime.date(2020, 4, 8), "repetition", 17, 1000),
+    Activity(datetime.date(2020, 4, 9), "recovery", 10, 1000),
+    Activity(datetime.date(2020, 4, 10), "ga", 14, 1000),
+    Activity(datetime.date(2020, 4, 11), "threshold", 16.5, 1000),
+    Activity(datetime.date(2020, 4, 11), "warmup", 10, 1000),
+    Activity(datetime.date(2020, 4, 12), "recovery", 10, 1000),
 ]
 
 
@@ -290,11 +314,11 @@ try:
     runs = []
     for i in range(len(DATA["Distance"])):
         if DATA["Sport"][i] == "Run":
-            run = (
-                DATA["date"][i],
-                DATA["Workout_Code"][i],
-                DATA["Distance"][i],
-                DATA["Time_Moving"][i],
+            run = Activity(
+                day=DATA["date"][i],
+                workout_code=DATA["Workout_Code"][i],
+                distance=DATA["Distance"][i],
+                time_moving=DATA["Time_Moving"][i],
             )
             runs.append(run)
 except NameError:
