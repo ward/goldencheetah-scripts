@@ -68,6 +68,8 @@ def write_day(f, activities, idx):
             activity.workout_code
         ):
             workout = activity.workout_code
+    # Could use <foreignObject>justhtmlhere</foreignObject> for word wrapping
+    # SVG doesn't really do it on its own apparently
     day = (
         '<g class="day workout-{}" transform="translate({},80)">'
         '<circle r="{}" />'
@@ -106,6 +108,7 @@ def write_week(f, activities):
     """Handles writing for a certain week. Input is a dict of
     day -> activities for that day."""
     overview = (
+        "\n"
         '<div class="week">'
         '<div class="overview">'
         "<time>{} - {}</time>"
@@ -131,9 +134,20 @@ def write_week(f, activities):
 def write_training_log(f, activities):
     """Creates HTML page of a training log.
     Activities are in the format as returned by group_by_week."""
-    header_a = "<!DOCTYPE html>" "<html>" "<head><title>Training Log</title>"
-    header_b = "</head>" "<body>"
-    footer = "</body>" "</html>"
+    header_a = (
+        "<!DOCTYPE html>"
+        "<html>"
+        "<head><title>Training Log</title>"
+        '<meta charset="utf-8" />'
+    )
+    header_b = (
+        "</head>"
+        "\n"
+        "<body>"
+        "\n"
+        "<p>Generated on {}.</p>".format(datetime.datetime.now().strftime("%Y-%m-%d"))
+    )
+    footer = "\n" "</body>" "</html>"
     f.write(header_a)
     write_css(f)
     f.write(header_b)
@@ -144,6 +158,7 @@ def write_training_log(f, activities):
 
 def write_css(f):
     css = (
+        "\n"
         '<style type="text/css">'
         ":root {"
         "--endurance: #0072b2;"
@@ -243,6 +258,7 @@ def write_css(f):
         "display: inline;"
         "}"
         "</style>"
+        "\n"
     )
     f.write(css)
 
