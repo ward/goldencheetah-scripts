@@ -4,6 +4,10 @@ import datetime
 import tempfile
 import pathlib
 
+# Clumsy way because the usual way creates an actual new line when saved in GC
+# so a syntax error when loading it back in afterwards
+NEWLINE = chr(10)
+
 
 def radius_from_distance(distance):
     """No logic to this formula, just playing around with numbers."""
@@ -108,8 +112,7 @@ def write_week(f, activities):
     """Handles writing for a certain week. Input is a dict of
     day -> activities for that day."""
     overview = (
-        "\n"
-        '<div class="week">'
+        NEWLINE + '<div class="week">'
         '<div class="overview">'
         "<time>{} - {}</time>"
         '<p class="distance">{:.1f} km</p>'
@@ -140,14 +143,16 @@ def write_training_log(f, activities):
         "<head><title>Training Log</title>"
         '<meta charset="utf-8" />'
     )
-    header_b = (
-        "</head>"
-        "\n"
-        "<body>"
-        "\n"
-        "<p>Generated on {}.</p>".format(datetime.datetime.now().strftime("%Y-%m-%d"))
+    header_b = NEWLINE.join(
+        [
+            "</head>",
+            "<body>",
+            "<p>Generated on {}.</p>".format(
+                datetime.datetime.now().strftime("%Y-%m-%d")
+            ),
+        ]
     )
-    footer = "\n" "</body>" "</html>"
+    footer = NEWLINE + "</body>" "</html>"
     f.write(header_a)
     write_css(f)
     f.write(header_b)
@@ -158,8 +163,7 @@ def write_training_log(f, activities):
 
 def write_css(f):
     css = (
-        "\n"
-        '<style type="text/css">'
+        NEWLINE + '<style type="text/css">'
         ":root {"
         "--endurance: #0072b2;"
         "--ga: #0094e4;"
@@ -257,8 +261,7 @@ def write_css(f):
         "g.day:hover g.description {"
         "display: inline;"
         "}"
-        "</style>"
-        "\n"
+        "</style>" + NEWLINE
     )
     f.write(css)
 
