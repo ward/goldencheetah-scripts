@@ -35,6 +35,11 @@ def calculate_rolling_total(number_of_days):
 def get_rolling_svg(rolling):
     fig, ax = plt.subplots()
     ax.plot(days_for_analysis, [rolling[d] for d in days_for_analysis])
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Distance (km)")
+    ax.set_title("Rolling Total")
+    ax.minorticks_on()
+    ax.grid(b=True, which="both", axis="y")
 
     tmpfile = BytesIO()
     fig.savefig(tmpfile, format="svg")
