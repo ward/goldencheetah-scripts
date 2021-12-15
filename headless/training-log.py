@@ -316,10 +316,10 @@ runs = goldencheetah.get_all_activities(sport="Run")
 runs = group_by_week(runs)
 
 try:
-    os.mkdir("/tmp/gc-headless")
+    os.mkdir("./output")
 except FileExistsError:
     pass
 
-NAME = "/tmp/gc-headless/training-log.html"
+NAME = "./output/training-log.html"
 with open(NAME, "w") as tmp_f:
     write_training_log(tmp_f, runs)

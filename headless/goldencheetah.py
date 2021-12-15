@@ -46,6 +46,7 @@ class Activity:
 
 
 def get_all_activities(sport="Run"):
+    """Parses rideDB into list of Activity. Filters on given sport."""
     data = parse_ridedb()
     runs = get_activities(data, sport)
     parsed = map(lambda d: Activity(d), runs)

@@ -52,7 +52,7 @@ distance_per_day = goldencheetah.get_distance_per_day(sport="Run")
 first_day = sorted(distance_per_day.keys())[0]
 
 now = datetime.date.today()
-six_months_ago = now - datetime.timedelta(days=365)
+six_months_ago = now - datetime.timedelta(days=500)
 days_for_analysis = days_range(six_months_ago, now)
 rolling_per_day = map(
     lambda number_of_days: calculate_rolling_total(
@@ -77,10 +77,10 @@ html = (
 )
 
 try:
-    os.mkdir("/tmp/gc-headless")
+    os.mkdir("./output")
 except FileExistsError:
     pass
 
-NAME = "/tmp/gc-headless/rolling-total.html"
+NAME = "./output/rolling-total.html"
 with open(NAME, "w") as f:
     f.write(html)
