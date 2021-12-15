@@ -29,6 +29,34 @@ def seconds_to_hour_string(seconds):
     return "{}:{:02}".format(hour, minutes)
 
 
+def optional_future_data(per_week):
+    last_completed_week = "2021W02"
+    planning = {}
+    for week in per_week.keys():
+        planning[week] = math.nan
+    # Overrides the math.nan
+    planning[last_completed_week] = per_week[last_completed_week]["Run"] / 60
+    planning["2021W03"] = 140
+    planning["2021W04"] = 140
+    planning["2021W05"] = 230
+    planning["2021W06"] = 230
+    planning["2021W07"] = 230
+    planning["2021W08"] = 320
+    planning["2021W09"] = 320
+    planning["2021W10"] = 320
+    planning["2021W11"] = 385
+    planning["2021W12"] = 385
+    planning["2021W13"] = 385
+    planning["2021W14"] = 450
+    planning["2021W15"] = 450
+    planning["2021W16"] = 450
+    planning["2021W17"] = 360
+    planning["2021W18"] = 495
+    planning["2021W19"] = 495
+    planning["2021W20"] = 495
+    return planning
+
+
 def write_time_spent(f, all_days, per_week):
     import plotly
     import plotly.graph_objs as go
@@ -38,13 +66,36 @@ def write_time_spent(f, all_days, per_week):
     run_time = [per_week[week]["Run"] / 60 for week in all_weeks]
     elliptical_time = [per_week[week]["Elliptical"] / 60 for week in all_weeks]
     data = [
-        go.Scatter(x=all_weeks, y=run_time, name="Run"),
-        go.Scatter(x=all_weeks, y=elliptical_time, name="Elliptical"),
+        go.Scatter(
+            x=all_weeks, y=run_time, name="Run", mode="lines", marker={"color": "Blue"}
+        ),
+        go.Scatter(
+            x=all_weeks,
+            y=elliptical_time,
+            name="Elliptical",
+            mode="lines",
+            marker={"color": "LightBlue"},
+        ),
     ]
+    # Set to False to disable "future" graphing
+    ADD_FUTURE = True
+    if ADD_FUTURE:
+        planning = optional_future_data(per_week)
+        planned_weeks = sorted(planning.keys())
+        data.append(
+            go.Scatter(
+                x=planned_weeks,
+                y=[planning[week] for week in planned_weeks],
+                name="Future Runs",
+                mode="lines",
+                marker={"color": "Blue"},
+                line={"dash": "dash"},
+            )
+        )
 
     plotly.offline.plot(
         {
-            "data": data,
+            "data": list(reversed(data)),
             "layout": {"title": "Time spent per week", "yaxis_title": "Minutes"},
         },
         auto_open=False,
