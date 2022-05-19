@@ -14,7 +14,10 @@ def parse_ridedb():
 
 
 def get_activities(ridedb, activity_type="Run"):
-    return filter(lambda activity: activity["sport"] == activity_type, ridedb)
+    if activity_type == None:
+        return ridedb
+    else:
+        return filter(lambda activity: activity["sport"] == activity_type, ridedb)
 
 
 class Activity:
@@ -24,7 +27,10 @@ class Activity:
             ridedb_entry["date"], "%Y/%m/%d %H:%M:%S %Z"
         )
         self.sport = ridedb_entry["sport"]
-        self.distance = float(ridedb_entry["METRICS"]["total_distance"])
+        try:
+            self.distance = float(ridedb_entry["METRICS"]["total_distance"])
+        except KeyError:
+            self.distance = 0
         self.time_elapsed = ridedb_entry["METRICS"]["workout_time"]
         # Assume if recording, we're moving. GC also has time_riding.
         try:
@@ -33,7 +39,10 @@ class Activity:
             self.time_moving = ridedb_entry["METRICS"]["workout_time"]
         self.time_moving = int(float(self.time_moving))
 
-        workout_code = ridedb_entry["TAGS"]["Workout Code"].strip()
+        try:
+            workout_code = ridedb_entry["TAGS"]["Workout Code"].strip()
+        except KeyError:
+            workout_code = ""
         if workout_code == "":
             self.workout_code = None
         else:
@@ -46,7 +55,7 @@ class Activity:
 
 
 def get_all_activities(sport="Run"):
-    """Parses rideDB into list of Activity. Filters on given sport."""
+    """Parses rideDB into list of Activity. Filters on given sport. No filtering if sport is None."""
     data = parse_ridedb()
     runs = get_activities(data, sport)
     parsed = map(lambda d: Activity(d), runs)

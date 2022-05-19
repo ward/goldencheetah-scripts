@@ -5,7 +5,6 @@ import os
 
 import goldencheetah
 
-
 # TODO Get rid of this hack in this headless version (or keep it so I can make
 # TODO a hybrid script that also runs in GC?)
 # Clumsy way because the usual way creates an actual new line when saved in GC
@@ -38,9 +37,15 @@ def workout_importance(workout):
 def write_days_activities(activities_for_the_day):
     text = ""
     for activity in activities_for_the_day:
-        text += '<p class="activity">{:.1f}km {}</p>'.format(
-            activity.distance, activity.workout_code
-        )
+        if activity.sport == "Run":
+            text += '<p class="activity">{:.1f}km {}</p>'.format(
+                activity.distance, activity.workout_code
+            )
+    for activity in activities_for_the_day:
+        if activity.sport != "Run":
+            text += '<p class="activity other">{:.1f}km {}'.format(
+                activity.distance, activity.sport
+            )
     return text
 
 
@@ -56,21 +61,25 @@ def write_day(f, activities, idx):
     far left/right on the page things need to end up."""
     if len(activities) == 0:
         return
+    # Amount *ran* that day
     distance = 0
     workout = None
+    run_counter = 0
     for activity in activities:
-        distance = distance + activity.distance
-        # Deciding the "main" colour to use for a given day based on which
-        # run type is the most interesting.
-        if workout is None or workout_importance(workout) < workout_importance(
-            activity.workout_code
-        ):
-            workout = activity.workout_code
+        if activity.sport == "Run":
+            run_counter += 1
+            distance = distance + activity.distance
+            # Deciding the "main" colour to use for a given day based on which
+            # run type is the most interesting.
+            if workout is None or workout_importance(workout) < workout_importance(
+                activity.workout_code
+            ):
+                workout = activity.workout_code
     if workout is None:
         workout = ""
     day = '<div class="day day-{} workout-{}">'.format(idx, workout.lower())
     day += "<datetime>" + str(activities[0].date.date()) + "</datetime>"
-    if len(activities) > 1:
+    if run_counter > 1:
         day += '<p class="distance">Σ {:.1f}km</p>'.format(distance)
     day += '<p class="details">{}</p>'.format(write_days_activities(activities))
     day += "</div>"
@@ -79,13 +88,14 @@ def write_day(f, activities, idx):
 
 def sum_week_distance_time(activities):
     """Given a week of activities, i.e. a dict of day->activitiesforthatday,
-    sums up all the distances and times, and returns them"""
+    sums up all the distances and times for runs, and returns them"""
     distance = 0
     time = 0
     for day in activities:
         for activity in activities[day]:
-            distance = distance + activity.distance
-            time = time + activity.time_moving
+            if activity.sport == "Run":
+                distance = distance + activity.distance
+                time = time + activity.time_moving
     return (distance, time)
 
 
@@ -208,6 +218,9 @@ def write_css(f):
         "div.week div.day-4 { grid-area: day-4; }"
         "div.week div.day-5 { grid-area: day-5; }"
         "div.week div.day-6 { grid-area: day-6; }"
+        "p.activity.other {"
+        "font-size: 0.8em;"
+        "}"
         "</style>" + NEWLINE
     )
     f.write(css)
@@ -249,8 +262,8 @@ def group_by_week(activities):
     return activities_by_week
 
 
-runs = goldencheetah.get_all_activities(sport="Run")
-runs = group_by_week(runs)
+all_activities = goldencheetah.get_all_activities(sport=None)
+all_activities = group_by_week(all_activities)
 
 try:
     os.mkdir("./output")
@@ -259,4 +272,4 @@ except FileExistsError:
 
 NAME = "./output/diary.html"
 with open(NAME, "w") as tmp_f:
-    write_training_log(tmp_f, runs)
+    write_training_log(tmp_f, all_activities)
