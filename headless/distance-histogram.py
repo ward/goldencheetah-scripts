@@ -20,6 +20,9 @@ runs = goldencheetah.get_all_activities(sport="Run")
 longest_distance_runs = sorted(runs, key=lambda a: a.distance, reverse=True)
 longest_time_runs = sorted(runs, key=lambda a: a.time_moving, reverse=True)
 
+# for run in longest_distance_runs[:10]:
+#     print(run.distance, run.date)
+
 # for run in longest_time_runs[:10]:
 #     print(seconds_to_hours_minutes(run.time_moving), run.date)
 
@@ -33,6 +36,8 @@ def create_distance_histogram(distances):
     axs.hist(distances, bins=bins, log=True)
     axs.set_xlabel("Length of run (km)")
     axs.set_ylabel("Number of runs")
+    # None makes matplotlib take its own default
+    axs.set_ylim([1, None])
     axs.minorticks_on()
 
     tmpfile = BytesIO()
@@ -56,7 +61,7 @@ html = (
     "<!DOCTYPE html>"
     + "<html>"
     + '<head><meta charset="utf-8" />'
-    + "<title>Rolling Total</title>"
+    + "<title>Distance histogram</title>"
     + "</head><body>"
     + distance_svg
     + "<p>Longest distance: {}.<br />Longest time: {}.</p>".format(

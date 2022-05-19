@@ -1,4 +1,4 @@
-all: output/training-log.html output/rolling-total.html output/distance-histogram.html
+all: output/training-log.html output/rolling-total.html output/distance-histogram.html output/diary.html
 
 rideDB.json: ~/.goldencheetah/Ward\ Muylaert/cache/rideDB.json
 	cp ~/.goldencheetah/Ward\ Muylaert/cache/rideDB.json .
@@ -11,6 +11,9 @@ output/rolling-total.html: rolling-total.py rideDB.json
 
 output/distance-histogram.html: distance-histogram.py rideDB.json
 	python distance-histogram.py
+
+output/diary.html: diary.py rideDB.json
+	python diary.py
 
 sync: all
 	rsync --progress output/*.html vps:/var/www/run.wxm.be/graphs/
