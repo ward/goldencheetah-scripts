@@ -22,28 +22,39 @@ div.workout-interval, div.workout-vo2max {
 }
 div.workout-race {
   background-color: var(--race);
-border: solid 3px gold;
+  border: solid 3px gold;
 }
 div.workout-recovery,
-  div.workout-warmup,
-  div.workout-cooldown {
-    background-color: var(--recovery);
-  }
+div.workout-warmup,
+div.workout-cooldown {
+  background-color: var(--recovery);
+}
 div.workout-repetition,
-  div.workout-speed {
-    background-color: var(--repetition);
-  }
+div.workout-speed {
+  background-color: var(--repetition);
+}
 div.workout-threshold,
-  div.workout-tempo {
-    background-color: var(--threshold);
-  }
+div.workout-tempo {
+  background-color: var(--threshold);
+}
 div.workout-cv {
   background-color: var(--cv);
 }
 div.week {
-display: grid;
-         grid-template-areas: "overview day-0 day-1 day-2 day-3 day-4 day-5 day-6";
-         grid-template-columns: max-content 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  display: grid;
+  grid-template-areas: "overview day-0 day-1 day-2 day-3 day-4 day-5 day-6";
+  grid-template-columns: max-content 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+}
+@media (max-width: 800px) {
+  div.week {
+    grid-template: "overview overview overview overview overview overview overview"
+    "day-0 day-1 day-2 day-3 day-4 day-5 day-6"
+    / 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  }
+  div.week div.overview {
+    text-align: center;
+    border-right: none;
+  }
 }
 div.week div.overview {
   grid-area: overview;

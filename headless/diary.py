@@ -42,10 +42,22 @@ def write_days_activities(activities_for_the_day):
             text += '<p class="activity">{:.1f}km {}</p>'.format(
                 activity.distance, activity.workout_code
             )
+    others_sums = {}
     for activity in activities_for_the_day:
         if activity.sport != "Run":
-            text += '<p class="activity other">{:.1f}km {}'.format(
-                activity.distance, activity.sport
+            if activity.sport not in others_sums:
+                others_sums[activity.sport] = {"distance": 0, "time": 0}
+            others_sums[activity.sport]["distance"] += activity.distance
+            others_sums[activity.sport]["time"] += activity.time_moving
+    for sport in others_sums:
+        if sport == "Elliptical":
+            hours, minutes = seconds_to_hours_minutes(others_sums[sport]["time"])
+            text += '<p class="activity other">Σ {}:{:02d} {}'.format(
+                hours, minutes, sport
+            )
+        else:
+            text += '<p class="activity other">Σ {:.1f}km {}'.format(
+                others_sums[sport]["distance"], sport
             )
     return text
 
