@@ -12,7 +12,7 @@ output/rolling-total.html: rolling-total.py rideDB.json
 output/distance-histogram.html: distance-histogram.py rideDB.json
 	python distance-histogram.py
 
-output/diary.html: diary.py rideDB.json
+output/diary.html: diary.py diary.css rideDB.json
 	python diary.py
 
 sync: all

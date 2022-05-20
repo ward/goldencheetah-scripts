@@ -1,4 +1,5 @@
-# TODO: Import all activities, still prioritise the runs
+# TODO: Perhaps just show sums for the non running
+# TODO: Show time for elliptical
 import math
 import datetime
 import os
@@ -153,77 +154,10 @@ def write_training_log(f, activities):
 
 
 def write_css(f):
-    css = (
-        NEWLINE + '<style type="text/css">'
-        ":root {"
-        "--endurance: #0072b2;"
-        "--ga: #0094e4;"
-        "--recovery: #00a1f7;"
-        "--interval: #e69f00;"
-        "--race: #d55e00;"
-        "--repetition: #f0e442;"
-        "--threshold: #009e73;"
-        "--cv: #5afff2;"
-        "}"
-        "body {"
-        "font-family: sans-serif;"
-        "}"
-        "div.workout-endurance {"
-        "background-color: var(--endurance);"
-        "}"
-        "div.workout-ga {"
-        "background-color: var(--ga);"
-        "}"
-        "div.workout-interval, div.workout-vo2max {"
-        "background-color: var(--interval);"
-        "}"
-        "div.workout-race {"
-        "background-color: var(--race);"
-        "border: solid 3px gold;"
-        "}"
-        "div.workout-recovery,"
-        "div.workout-warmup,"
-        "div.workout-cooldown {"
-        "background-color: var(--recovery);"
-        "}"
-        "div.workout-repetition,"
-        "div.workout-speed {"
-        "background-color: var(--repetition);"
-        "}"
-        "div.workout-threshold,"
-        "div.workout-tempo {"
-        "background-color: var(--threshold);"
-        "}"
-        "div.workout-cv {"
-        "background-color: var(--cv);"
-        "}"
-        "div.week {"
-        "display: grid;"
-        'grid-template-areas: "overview day-0 day-1 day-2 day-3 day-4 day-5 day-6";'
-        "grid-template-columns: max-content 1fr 1fr 1fr 1fr 1fr 1fr 1fr;"
-        "}"
-        "div.week div.overview {"
-        "grid-area: overview;"
-        "border-right: 1px dotted grey;"
-        "padding-right: 1em;"
-        "}"
-        "div.week div.overview p.distance {"
-        "font-size: 1.5em;"
-        "font-weight: bold;"
-        "}"
-        "div.week div.day-0 { grid-area: day-0; }"
-        "div.week div.day-1 { grid-area: day-1; }"
-        "div.week div.day-2 { grid-area: day-2; }"
-        "div.week div.day-3 { grid-area: day-3; }"
-        "div.week div.day-4 { grid-area: day-4; }"
-        "div.week div.day-5 { grid-area: day-5; }"
-        "div.week div.day-6 { grid-area: day-6; }"
-        "p.activity.other {"
-        "font-size: 0.8em;"
-        "}"
-        "</style>" + NEWLINE
-    )
-    f.write(css)
+    with open("diary.css", "r") as css_file:
+        contents = css_file.read()
+        css = NEWLINE + '<style type="text/css">' + contents + "</style>" + NEWLINE
+        f.write(css)
 
 
 def days_range(start_day, end_day):
