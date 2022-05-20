@@ -7,7 +7,9 @@ pkgs.mkShell {
   buildInputs = [
     pkgs.python39
     pkgs.python39Packages.matplotlib
-    # Autoformatting code
+    # Python formatting
     pkgs.black
+    # CSS formatting
+    pkgs.nodePackages.prettier
   ];
 }

@@ -17,7 +17,8 @@ div.workout-endurance {
 div.workout-ga {
   background-color: var(--ga);
 }
-div.workout-interval, div.workout-vo2max {
+div.workout-interval,
+div.workout-vo2max {
   background-color: var(--interval);
 }
 div.workout-race {
@@ -42,36 +43,62 @@ div.workout-cv {
 }
 div.week {
   display: grid;
-  grid-template-areas: "overview day-0 day-1 day-2 day-3 day-4 day-5 day-6";
-  grid-template-columns: max-content 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-areas:
+    "when day-0 day-1 day-2 day-3 day-4 day-5 day-6"
+    "total-distance day-0 day-1 day-2 day-3 day-4 day-5 day-6"
+    "total-time day-0 day-1 day-2 day-3 day-4 day-5 day-6";
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  border-bottom: 1px solid lightgrey;
 }
-@media (max-width: 800px) {
+@media (max-width: 1000px) {
   div.week {
-    grid-template: "overview overview overview overview overview overview overview"
-    "day-0 day-1 day-2 day-3 day-4 day-5 day-6"
-    / 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-  }
-  div.week div.overview {
-    text-align: center;
-    border-right: none;
+    grid-template:
+      "when when total-distance total-distance total-distance total-time total-time"
+      "day-0 day-1 day-2 day-3 day-4 day-5 day-6"
+      / 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
   }
 }
-div.week div.overview {
-  grid-area: overview;
-  border-right: 1px dotted grey;
-  padding-right: 1em;
+div.week time.when {
+  grid-area: when;
+  margin: auto 0;
 }
-div.week div.overview p.distance {
+div.week p.total-time {
+  grid-area: total-time;
+  margin: auto 0;
+}
+div.week p.total-distance {
+  grid-area: total-distance;
   font-size: 1.5em;
   font-weight: bold;
+  margin: auto 0;
 }
-div.week div.day-0 { grid-area: day-0; }
-div.week div.day-1 { grid-area: day-1; }
-div.week div.day-2 { grid-area: day-2; }
-div.week div.day-3 { grid-area: day-3; }
-div.week div.day-4 { grid-area: day-4; }
-div.week div.day-5 { grid-area: day-5; }
-div.week div.day-6 { grid-area: day-6; }
+div.week div.day-0 {
+  grid-area: day-0;
+}
+div.week div.day-1 {
+  grid-area: day-1;
+}
+div.week div.day-2 {
+  grid-area: day-2;
+}
+div.week div.day-3 {
+  grid-area: day-3;
+}
+div.week div.day-4 {
+  grid-area: day-4;
+}
+div.week div.day-5 {
+  grid-area: day-5;
+}
+div.week div.day-6 {
+  grid-area: day-6;
+}
+div.day p.distance {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  font-style: italic;
+}
 div.day p.activity {
   margin-top: 0px;
   margin-bottom: 0px;
@@ -79,4 +106,3 @@ div.day p.activity {
 p.activity.other {
   font-size: 0.8em;
 }
-

@@ -1,4 +1,3 @@
-# TODO: Perhaps just show sums for the non running
 # TODO: Show time for elliptical
 import math
 import datetime
@@ -91,10 +90,10 @@ def write_day(f, activities, idx):
     if workout is None:
         workout = ""
     day = '<div class="day day-{} workout-{}">'.format(idx, workout.lower())
-    day += "<datetime>" + str(activities[0].date.date()) + "</datetime>"
+    day += "<datetime>" + activities[0].date.strftime("%-d %h") + "</datetime>"
     if run_counter > 1:
         day += '<p class="distance">Σ {:.1f}km</p>'.format(distance)
-    day += '<p class="details">{}</p>'.format(write_days_activities(activities))
+    day += write_days_activities(activities)
     day += "</div>"
     f.write(day)
 
@@ -115,20 +114,19 @@ def sum_week_distance_time(activities):
 def write_week(f, activities):
     """Handles writing for a certain week. Input is a dict of
     day -> activities for that day."""
-    overview = (
-        NEWLINE + '<div class="week">'
-        '<div class="overview">'
-        "<time>{} - {}</time>"
-        '<p class="distance">{:.1f} km</p>'
-        '<p class="time">{:d}h{:02d}</p>'
-        "</div>"
-    )
     days = [*activities]
     first_day = days[0]
     last_day = days[-1]
     distance, time = sum_week_distance_time(activities)
     hours, minutes = seconds_to_hours_minutes(time)
-    overview = overview.format(first_day, last_day, distance, hours, minutes)
+    isodate = first_day.isocalendar()
+    overview = (
+        NEWLINE + '<div class="week">'
+        '<time class="when">{}W{}</time>'
+        '<p class="total-distance">{:.1f} km</p>'
+        '<p class="total-time">{:d}h{:02d}</p>'
+    )
+    overview = overview.format(isodate.year, isodate.week, distance, hours, minutes)
     header = ""
     footer = "" "</div>"
     f.write(overview)
