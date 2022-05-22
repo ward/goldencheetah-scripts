@@ -52,6 +52,11 @@ distance_per_day = goldencheetah.get_distance_per_day(sport="Run")
 first_day = sorted(distance_per_day.keys())[0]
 
 now = datetime.date.today()
+if distance_per_day[now] == 0:
+    # In case we are generating prior to today's run, pretend it is yesterday
+    # still. Reason is otherwise you get a dip at the end of the graph for no
+    # good reason.
+    now = now - datetime.timedelta(days=1)
 six_months_ago = now - datetime.timedelta(days=500)
 days_for_analysis = days_range(six_months_ago, now)
 rolling_per_day = map(

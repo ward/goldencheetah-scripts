@@ -1,4 +1,3 @@
-# TODO: Show time for elliptical
 import math
 import datetime
 import os
