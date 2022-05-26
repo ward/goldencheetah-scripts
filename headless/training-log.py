@@ -58,12 +58,6 @@ def text_summary_of_day(activities_for_the_day):
     return text
 
 
-def seconds_to_hours_minutes(seconds):
-    hours = math.floor(seconds / 3600)
-    minutes = math.floor((seconds - (hours * 3600)) / 60)
-    return (hours, minutes)
-
-
 def write_day(f, activities, idx):
     """Given a list of activities for a day, writes the HTML for it.
     Requires an idx, i.e., the day's number in the week, to know how
@@ -134,7 +128,7 @@ def write_week(f, activities):
     first_day = days[0]
     last_day = days[-1]
     distance, time = sum_week_distance_time(activities)
-    hours, minutes = seconds_to_hours_minutes(time)
+    hours, minutes = goldencheetah.seconds_to_hours_minutes(time)
     overview = overview.format(first_day, last_day, distance, hours, minutes)
     header = '<svg height="160" width="825">' '<g class="days">'
     footer = "</g>" "</svg>" "</div>"

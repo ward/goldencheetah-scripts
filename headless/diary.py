@@ -1,4 +1,3 @@
-import math
 import datetime
 import os
 
@@ -49,7 +48,7 @@ def write_days_activities(activities_for_the_day):
             others_sums[activity.sport]["time"] += activity.time_moving
     for sport in others_sums:
         if sport == "Elliptical":
-            hours, minutes = seconds_to_hours_minutes(others_sums[sport]["time"])
+            hours, minutes = goldencheetah.seconds_to_hours_minutes(others_sums[sport]["time"])
             text += '<p class="activity other">Σ {}:{:02d} {}'.format(
                 hours, minutes, sport
             )
@@ -58,12 +57,6 @@ def write_days_activities(activities_for_the_day):
                 others_sums[sport]["distance"], sport
             )
     return text
-
-
-def seconds_to_hours_minutes(seconds):
-    hours = math.floor(seconds / 3600)
-    minutes = math.floor((seconds - (hours * 3600)) / 60)
-    return (hours, minutes)
 
 
 def write_day(f, activities, idx):
@@ -117,7 +110,7 @@ def write_week(f, activities):
     first_day = days[0]
     last_day = days[-1]
     distance, time = sum_week_distance_time(activities)
-    hours, minutes = seconds_to_hours_minutes(time)
+    hours, minutes = goldencheetah.seconds_to_hours_minutes(time)
     isodate = first_day.isocalendar()
     overview = (
         NEWLINE + '<div class="week">'

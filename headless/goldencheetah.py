@@ -1,5 +1,6 @@
 # Parse GC data to create graphs without needing to start up GoldenCheetah
 
+import math
 import json
 import datetime
 
@@ -82,6 +83,12 @@ def get_distance_per_day(sport="Run"):
         per_day[activity.date.date()] += activity.distance
 
     return per_day
+
+
+def seconds_to_hours_minutes(seconds):
+    hours = math.floor(seconds / 3600)
+    minutes = math.floor((seconds - (hours * 3600)) / 60)
+    return (hours, minutes)
 
 
 if __name__ == "__main__":
