@@ -37,7 +37,7 @@ def create_distance_histogram(distances):
     axs.set_xlabel("Length of run (km)")
     axs.set_ylabel("Number of runs")
     # None makes matplotlib take its own default
-    axs.set_ylim([1, None])
+    axs.set_ylim([0.1, None])
     axs.minorticks_on()
 
     tmpfile = BytesIO()
