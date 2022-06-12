@@ -48,7 +48,9 @@ def write_days_activities(activities_for_the_day):
             others_sums[activity.sport]["time"] += activity.time_moving
     for sport in others_sums:
         if sport == "Elliptical":
-            hours, minutes = goldencheetah.seconds_to_hours_minutes(others_sums[sport]["time"])
+            hours, minutes = goldencheetah.seconds_to_hours_minutes(
+                others_sums[sport]["time"]
+            )
             text += '<p class="activity other">Σ {}:{:02d} {}'.format(
                 hours, minutes, sport
             )
@@ -162,44 +164,8 @@ def write_css(f):
         f.write(css)
 
 
-def days_range(start_day, end_day):
-    """Create a list with every day frm start to end (inclusive)"""
-    # Set start_day to the Monday (.weekday() is 0 based)
-    start_day = start_day - datetime.timedelta(days=start_day.weekday())
-    # Set end_day to the Sunday
-    end_day = end_day + datetime.timedelta(days=6 - end_day.weekday())
-    return [
-        start_day + datetime.timedelta(days=days)
-        for days in range((end_day - start_day).days + 1)
-    ]
-
-
-def group_by_week(activities):
-    """Given a list of activities, returns a dict with
-    week -> dict in which
-            day -> activities for that day."""
-    all_days = days_range(activities[0].date.date(), activities[-1].date.date())
-    activities_by_day = {}
-    for day in all_days:
-        activities_by_day[day] = list()
-
-    for activity in activities:
-        activities_by_day[activity.date.date()].append(activity)
-
-    activities_by_week = {}
-    for day, activities in activities_by_day.items():
-        week = day.strftime("%G-%V")
-        try:
-            activities_by_week[week]
-        except KeyError:
-            activities_by_week[week] = {}
-        activities_by_week[week][day] = activities
-
-    return activities_by_week
-
-
 all_activities = goldencheetah.get_all_activities(sport=None)
-all_activities = group_by_week(all_activities)
+all_activities = goldencheetah.group_by_week(all_activities)
 
 try:
     os.mkdir("./output")

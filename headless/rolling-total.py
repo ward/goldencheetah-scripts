@@ -34,7 +34,7 @@ def get_rolling_svg(rolling, day_count):
     ax.set_ylabel("Distance (km)")
     ax.set_title("Rolling {} Day Total".format(day_count))
     ax.minorticks_on()
-    ax.grid(b=True, which="both", axis="y")
+    ax.grid(visible=True, which="both", axis="y")
 
     tmpfile = BytesIO()
     fig.savefig(tmpfile, format="svg")

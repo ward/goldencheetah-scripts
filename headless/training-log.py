@@ -271,43 +271,8 @@ def write_css(f):
     f.write(css)
 
 
-def days_range(start_day, end_day):
-    # Set start_day to the Monday (.weekday() is 0 based)
-    start_day = start_day - datetime.timedelta(days=start_day.weekday())
-    # Set end_day to the Sunday
-    end_day = end_day + datetime.timedelta(days=6 - end_day.weekday())
-    return [
-        start_day + datetime.timedelta(days=days)
-        for days in range((end_day - start_day).days + 1)
-    ]
-
-
-def group_by_week(activities):
-    """Given a list of activities, returns a dict with
-        week -> dict in which
-                day -> activities for that day."""
-    all_days = days_range(activities[0].date.date(), activities[-1].date.date())
-    activities_by_day = {}
-    for day in all_days:
-        activities_by_day[day] = list()
-
-    for activity in activities:
-        activities_by_day[activity.date.date()].append(activity)
-
-    activities_by_week = {}
-    for day, activities in activities_by_day.items():
-        week = day.strftime("%G-%V")
-        try:
-            activities_by_week[week]
-        except KeyError:
-            activities_by_week[week] = {}
-        activities_by_week[week][day] = activities
-
-    return activities_by_week
-
-
 runs = goldencheetah.get_all_activities(sport="Run")
-runs = group_by_week(runs)
+runs = goldencheetah.group_by_week(runs)
 
 try:
     os.mkdir("./output")
