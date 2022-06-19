@@ -35,6 +35,8 @@ def get_rolling_svg(rolling, day_count):
     ax.set_title("Rolling {} Day Total".format(day_count))
     ax.minorticks_on()
     ax.grid(visible=True, which="both", axis="y")
+    (_, y_upper) = ax.get_ylim()
+    ax.set_ylim(0, y_upper)
 
     tmpfile = BytesIO()
     fig.savefig(tmpfile, format="svg")
