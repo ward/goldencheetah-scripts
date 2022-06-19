@@ -64,6 +64,7 @@ def get_all_activities(sport="Run"):
 
 
 def days_range(start_day, end_day):
+    """Return a list with every day from start_day to end_day (inclusive)."""
     return [
         start_day + datetime.timedelta(days=days)
         for days in range((end_day - start_day).days + 1)
@@ -91,7 +92,7 @@ def seconds_to_hours_minutes(seconds):
     return (hours, minutes)
 
 
-def days_range(start_day, end_day):
+def days_range_normalised_to_week(start_day, end_day):
     """Create a list with every day from Monday of the week of the start to
     Sunday of the week of the end (inclusive)."""
     # Set start_day to the Monday (.weekday() is 0 based)
@@ -108,7 +109,7 @@ def group_by_week(activities):
     """Given a list of activities, returns a dict with
     week -> dict in which
             day -> activities for that day."""
-    all_days = days_range(activities[0].date.date(), activities[-1].date.date())
+    all_days = days_range_normalised_to_week(activities[0].date.date(), activities[-1].date.date())
     activities_by_day = {}
     for day in all_days:
         activities_by_day[day] = list()
