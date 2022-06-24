@@ -71,6 +71,7 @@ def write_day(f, activities, idx):
     distance = 0
     workout = None
     run_counter = 0
+    has_sport_other_than_running = False
     for activity in activities:
         if activity.sport == "Run":
             run_counter += 1
@@ -81,8 +82,13 @@ def write_day(f, activities, idx):
                 activity.workout_code
             ):
                 workout = activity.workout_code
+        else:
+            has_sport_other_than_running = True
     if workout is None:
-        workout = ""
+        if has_sport_other_than_running:
+            workout = "not-a-run"
+        else:
+            workout = "nothing"
     day = '<div class="day day-{} workout-{}">'.format(idx, workout.lower())
     day += "<datetime>" + activities[0].date.strftime("%-d %h") + "</datetime>"
     if run_counter > 1:

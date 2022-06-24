@@ -7,6 +7,7 @@
   --repetition: #f0e442;
   --threshold: #009e73;
   --cv: #5afff2;
+  --not-a-run: #dddddd;
 }
 body {
   font-family: sans-serif;
@@ -40,6 +41,9 @@ div.workout-tempo {
 }
 div.workout-cv {
   background-color: var(--cv);
+}
+div.workout-not-a-run {
+  background-color: var(--not-a-run);
 }
 div.week {
   display: grid;
