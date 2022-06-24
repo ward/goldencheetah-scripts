@@ -1,3 +1,4 @@
+import math
 import datetime
 import os
 from io import BytesIO
@@ -47,6 +48,47 @@ def create_goal_values(goal, days):
     return [per_day + per_day * i for i in range(len(days))]
 
 
+def calculate_goal_stats(cumul_per_day, goal, days):
+    today = datetime.date.today()
+    current_distance_ran = cumul_per_day[today]
+
+    per_day = goal / len(days)
+    # tm_yday starts at 1, so we do not need to do + per_day
+    goal_distance_ran = per_day * today.timetuple().tm_yday
+
+    days_left = (days[-1] - today).days
+    per_day_from_now_on = (goal - current_distance_ran) / days_left
+    per_day_from_now_on_with_today = (goal - current_distance_ran) / (days_left + 1)
+    return {
+        "per_day": per_day,
+        "ran_so_far": current_distance_ran,
+        "should_have_ran": goal_distance_ran,
+        "per_day_from_now_on": per_day_from_now_on,
+        "per_day_from_now_on_with_today": per_day_from_now_on_with_today,
+    }
+
+
+def create_textual_overview(cumul_per_day, goal, days):
+    stats = calculate_goal_stats(cumul_per_day, goal, days)
+    result = "<p>You have run {:,.1f} km so far. "
+    if stats["ran_so_far"] > stats["should_have_ran"]:
+        result += "You are {:,.1f} km ahead of where you should be today ({:,.1f}). "
+    else:
+        result += "You are {:,.1f} km behind where you should be today ({:,.1f}). "
+    result += "To reach your goal, you need {:,.1f} per day ({:,.1f} per week) from here on out. "
+    result += "If you still have to run today, that is {:,.1f} per day and {:,.1f} per week.</p>"
+    result = result.format(
+        stats["ran_so_far"],
+        abs(stats["ran_so_far"] - stats["should_have_ran"]),
+        stats["should_have_ran"],
+        stats["per_day_from_now_on"],
+        7 * stats["per_day_from_now_on"],
+        stats["per_day_from_now_on_with_today"],
+        7 * stats["per_day_from_now_on_with_today"],
+    )
+    return result
+
+
 def create_svg(cumul_per_day, days):
     fig, ax = plt.subplots()
     ax.plot(days, [cumul_per_day[day] for day in days], label="Distance run")
@@ -78,9 +120,10 @@ def create_svg(cumul_per_day, days):
     index_of_greater_than = svg.find(">", index_of_greater_than) + 1
     return svg[index_of_greater_than:]
 
+
 # Change the plot sizes
 # Default is [6.4, 4.8] (width, height)
-plt.rcParams['figure.figsize'] = [10, 5]
+plt.rcParams["figure.figsize"] = [10, 5]
 
 now = datetime.date.today()
 html = (
@@ -90,6 +133,7 @@ html = (
     + "<title>5 MEGA METER</title>"
     + "</head><body>"
     + create_svg(cumul_per_day, years_days)
+    + create_textual_overview(cumul_per_day, GOAL_DISTANCES[0], years_days)
     + "<footer><p>Generated on {}.</p></footer>".format(now)
     + "</body></html>"
 )
