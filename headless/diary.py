@@ -36,8 +36,11 @@ def write_days_activities(activities_for_the_day):
     text = ""
     for activity in activities_for_the_day:
         if activity.sport == "Run":
-            text += '<p class="activity">{:.1f}km {}</p>'.format(
-                activity.distance, activity.workout_code
+            strides_text = ""
+            if "strides" in activity.keywords:
+                strides_text = "<sup>st</sup>"
+            text += '<p class="activity">{:.1f}km {}{}</p>'.format(
+                activity.distance, activity.workout_code, strides_text
             )
     others_sums = {}
     for activity in activities_for_the_day:

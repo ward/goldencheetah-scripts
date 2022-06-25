@@ -49,6 +49,17 @@ class Activity:
         else:
             self.workout_code = workout_code
 
+        # Keywords
+        self.keywords = []
+        try:
+            keywords = ridedb_entry["TAGS"]["Keywords"].split(",")
+            for keyword in keywords:
+                keyword = keyword.strip()
+                if keyword != "":
+                    self.keywords.append(keyword)
+        except KeyError:
+            pass
+
     def __str__(self):
         return "{} on {}: {} km in {} s".format(
             self.sport, self.date, self.distance, self.time_moving
@@ -109,7 +120,9 @@ def group_by_week(activities):
     """Given a list of activities, returns a dict with
     week -> dict in which
             day -> activities for that day."""
-    all_days = days_range_normalised_to_week(activities[0].date.date(), activities[-1].date.date())
+    all_days = days_range_normalised_to_week(
+        activities[0].date.date(), activities[-1].date.date()
+    )
     activities_by_day = {}
     for day in all_days:
         activities_by_day[day] = list()

@@ -10,7 +10,7 @@
   --not-a-run: #dddddd;
 }
 body {
-  font-family: sans-serif;
+  font-family: Ubuntu, sans-serif;
 }
 div.workout-endurance {
   background-color: var(--endurance);
