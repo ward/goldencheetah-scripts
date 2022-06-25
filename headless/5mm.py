@@ -125,11 +125,20 @@ def create_svg(cumul_per_day, days):
 # Default is [6.4, 4.8] (width, height)
 plt.rcParams["figure.figsize"] = [10, 5]
 
+
+def html_css():
+    with open("5mm.css", "r") as css:
+        contents = css.read()
+        css = '<style type="text/css">' + contents + "</style>"
+        return css
+
+
 now = datetime.date.today()
 html = (
     "<!DOCTYPE html>"
     + "<html>"
     + '<head><meta charset="utf-8" />'
+    + html_css()
     + "<title>5 MEGA METER</title>"
     + "</head><body>"
     + create_svg(cumul_per_day, years_days)
