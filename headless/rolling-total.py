@@ -38,6 +38,14 @@ def get_rolling_svg(rolling, day_count):
     (_, y_upper) = ax.get_ylim()
     ax.set_ylim(0, y_upper)
 
+    # Second y axis on the right hand side
+    if day_count != 7:
+        secax = ax.secondary_yaxis(
+            "right",
+            functions=(lambda x: x / day_count * 7, lambda x: x / 7 * day_count),
+        )
+        secax.set_ylabel("eq distance per week")
+
     tmpfile = BytesIO()
     fig.savefig(tmpfile, format="svg")
     svg = tmpfile.getvalue().decode("utf-8")
@@ -69,7 +77,7 @@ rolling_per_day = map(
 )
 
 # Default is [6.4, 4.8] (width, height)
-plt.rcParams['figure.figsize'] = [10, 5]
+plt.rcParams["figure.figsize"] = [10, 5]
 
 svgs = "\n".join(map(get_rolling_svg, rolling_per_day, DAYS))
 html = (
