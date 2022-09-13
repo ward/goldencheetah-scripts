@@ -26,12 +26,18 @@ def create_distance_histogram(distances):
     # +1 for rounding down, +1 for range
     bins = list(range(int(max(distances)) + 2))
     # Bin is [low, high[
-    axs.hist(distances, bins=bins, log=True)
+    values, _bin_edges, _patches = axs.hist(distances, bins=bins, log=True)
     axs.set_xlabel("Length of run (km)")
     axs.set_ylabel("Number of runs")
     # None makes matplotlib take its own default
     axs.set_ylim([0.1, None])
     axs.minorticks_on()
+
+    # Adding labels
+    for i in range(len(values)):
+        axs.text(
+            i, values[i], int(values[i]), fontsize="x-small"
+        )
 
     tmpfile = BytesIO()
     fig.savefig(tmpfile, format="svg")
