@@ -59,32 +59,37 @@ def calculate_goal_stats(cumul_per_day, goal, days):
     days_left = (days[-1] - today).days
     per_day_from_now_on = (goal - current_distance_ran) / days_left
     per_day_from_now_on_with_today = (goal - current_distance_ran) / (days_left + 1)
+
+    days_passed = (today - days[0]).days + 1
+    total_days = (days[-1] - days[0]).days + 1
+    avg_so_far_per_day = current_distance_ran / days_passed
+    current_extrapolated = avg_so_far_per_day * total_days
+
     return {
         "per_day": per_day,
         "ran_so_far": current_distance_ran,
         "should_have_ran": goal_distance_ran,
         "per_day_from_now_on": per_day_from_now_on,
         "per_day_from_now_on_with_today": per_day_from_now_on_with_today,
+        "current_extrapolated": current_extrapolated,
     }
 
 
 def create_textual_overview(cumul_per_day, goal, days):
     stats = calculate_goal_stats(cumul_per_day, goal, days)
-    result = "<p>You have run {:,.1f} km so far. "
+    result = "<p>You have run {:,.1f} km so far (extrapolated: {:,.1f}). "
     if stats["ran_so_far"] > stats["should_have_ran"]:
         result += "You are {:,.1f} km ahead of where you should be today ({:,.1f}). "
     else:
         result += "You are {:,.1f} km behind where you should be today ({:,.1f}). "
-    result += "To reach your goal, you need {:,.1f} per day ({:,.1f} per week) from here on out. "
-    result += "If you still have to run today, that is {:,.1f} per day and {:,.1f} per week.</p>"
+    result += "To reach your goal, you need {:,.1f} per day ({:,.1f} per week) from tomorrow onwards.</p>"
     result = result.format(
         stats["ran_so_far"],
+        stats["current_extrapolated"],
         abs(stats["ran_so_far"] - stats["should_have_ran"]),
         stats["should_have_ran"],
         stats["per_day_from_now_on"],
         7 * stats["per_day_from_now_on"],
-        stats["per_day_from_now_on_with_today"],
-        7 * stats["per_day_from_now_on_with_today"],
     )
     return result
 
