@@ -74,6 +74,7 @@ def create_svg(distance_per_time, timeframe):
     ax.set_xlabel("Date")
     ax.set_ylabel("Distance (km)")
     ax.set_title("Distance per {}".format(timeframe))
+    ax.secondary_yaxis("right")
     plt.xticks(rotation=45)
     # ax.minorticks_on()
 
