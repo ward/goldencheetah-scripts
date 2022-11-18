@@ -1,5 +1,5 @@
 # Python files that create an html file of the same name
-python_files = 5mm.py diary.py distance-histogram.py distancepertime.py rolling-total.py training-log.py
+python_files = 5mm.py diary.py distance-histogram.py distancepertime.py distanceandtypepertime.py rolling-total.py training-log.py
 output_files = $(python_files:%.py=output/%.html)
 
 all: $(output_files)

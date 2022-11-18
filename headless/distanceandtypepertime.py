@@ -44,7 +44,7 @@ class RunSummaryPer:
 
 
 def days_to_weeks(list_of_days):
-    """Specifically, weeks represented as a "YYYY-MM" string."""
+    """Specifically, weeks represented as a "YYYY-ISOWEEK" string."""
     all_weeks = []
     for day in list_of_days:
         that_week = day.isocalendar()
@@ -55,6 +55,10 @@ def days_to_weeks(list_of_days):
         ):
             all_weeks.append(that_week)
     return list(map(lambda iso: "{}-{}".format(iso.year, iso.week), all_weeks))
+
+def days_to_months(list_of_days):
+    all_months = list(dict.fromkeys(map(lambda d: "{}-{}".format(d.year, d.month), list_of_days)))
+    return all_months
 
 
 class Summary:
@@ -88,11 +92,13 @@ def create_run_summaries(list_of_runs):
         list_of_runs[0].date.date(), datetime.date.today()
     )
     all_weeks = days_to_weeks(all_days)
+    all_months = days_to_months(all_days)
     # The list(dict.fromkeys( is a hacky way to get rid of duplicates
     all_years = list(dict.fromkeys(map(lambda d: d.year, all_days)))
 
     day_summary = Summary(all_days)
     week_summary = Summary(all_weeks)
+    month_summary = Summary(all_months)
     year_summary = Summary(all_years)
 
     for run in list_of_runs:
@@ -100,16 +106,18 @@ def create_run_summaries(list_of_runs):
         dist = run.distance
         day = run.date.date()
         week = "{}-{}".format(run.date.isocalendar().year, run.date.isocalendar().week)
+        month = "{}-{}".format(run.date.year, run.date.month)
         year = run.date.year
         day_summary.add_value(workout_code, day, dist)
         week_summary.add_value(workout_code, week, dist)
+        month_summary.add_value(workout_code, month, dist)
         year_summary.add_value(workout_code, year, dist)
 
-    return (day_summary, week_summary, year_summary)
+    return (day_summary, week_summary, month_summary, year_summary)
 
 
 runs = goldencheetah.get_all_activities(sport="Run")
-(day_summary, week_summary, year_summary) = create_run_summaries(runs)
+(day_summary, week_summary, month_summary, year_summary) = create_run_summaries(runs)
 
 
 def create_svg(summaries, time_name):
@@ -162,6 +170,7 @@ html = (
     + "</head><body>"
     + create_svg(day_summary, "day")
     + create_svg(week_summary, "week")
+    + create_svg(month_summary, "month")
     + create_svg(year_summary, "year")
     + "<footer><p>Generated on {}.</p></footer>".format(now)
     + "</body></html>"
