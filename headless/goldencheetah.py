@@ -3,8 +3,11 @@
 import math
 import json
 import datetime
+import os
+import pickle
 
 RIDEDB_FILE = "./rideDB.json"
+PICKLE_FILE = "./rideDB.pickle"
 
 
 def parse_ridedb():
@@ -13,12 +16,17 @@ def parse_ridedb():
         data = json.load(f)
         return data["RIDES"]
 
+def ridedb_to_pickle():
+    ridedb = parse_ridedb()
+    activities = list(map(lambda d: Activity(d), ridedb))
+    with open(PICKLE_FILE, "wb") as f:
+        pickle.dump(activities, f)
 
-def get_activities(ridedb, activity_type="Run"):
-    if activity_type == None:
-        return ridedb
-    else:
-        return filter(lambda activity: activity["sport"] == activity_type, ridedb)
+def pickle_to_activities():
+    """Read in the pickle file that has parsed activities."""
+    with open(PICKLE_FILE, "rb") as f:
+        activities = pickle.load(f)
+        return activities
 
 
 class Activity:
@@ -67,11 +75,15 @@ class Activity:
 
 
 def get_all_activities(sport="Run"):
-    """Parses rideDB into list of Activity. Filters on given sport. No filtering if sport is None."""
-    data = parse_ridedb()
-    runs = get_activities(data, sport)
-    parsed = map(lambda d: Activity(d), runs)
-    return list(parsed)
+    """Reads activities from pickle. Filters on given sport. No filtering if
+    sport is None."""
+    activities = pickle_to_activities()
+    if sport is None:
+        return activities
+    else:
+        runs = list(filter(lambda act: act.sport == sport, activities))
+        return runs
+
 
 
 def days_range(start_day, end_day):
@@ -143,8 +155,6 @@ def group_by_week(activities):
 
 
 if __name__ == "__main__":
-    data = parse_ridedb()
-    runs = get_activities(data, "Run")
-    parsed = map(lambda d: Activity(d), runs)
-    for a in parsed:
-        print(a)
+    runs = get_all_activities(sport="Run")
+    for run in runs:
+        print(run)
