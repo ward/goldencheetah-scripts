@@ -74,8 +74,9 @@ def create_svg(distance_per_time, timeframe):
     ax.set_xlabel("Date")
     ax.set_ylabel("Distance (km)")
     ax.set_title("Distance per {}".format(timeframe))
-    ax.secondary_yaxis("right")
-    plt.xticks(rotation=45)
+    second_axis = ax.secondary_yaxis("right")
+    second_axis.set_ylabel("Distance (km)")
+    plt.xticks(rotation=90)
     # ax.minorticks_on()
 
     tmpfile = BytesIO()
@@ -89,6 +90,12 @@ def create_svg(distance_per_time, timeframe):
     index_of_greater_than = svg.find(">", index_of_greater_than) + 1
     return svg[index_of_greater_than:]
 
+# Change the plot sizes
+# Default is [6.4, 4.8] (width, height)
+plt.rcParams["figure.figsize"] = [10, 6]
+# SVG font defaults to "path", making it look the same in every viewer.
+# Setting it to none makes it use actual text so font choice is left to the viewer.
+# plt.rcParams["svg.fonttype"] = "none"
 
 now = datetime.date.today()
 html = (
