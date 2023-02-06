@@ -8,6 +8,8 @@
   --threshold: #009e73;
   --cv: #5afff2;
   --not-a-run: #dddddd;
+  --m-pace: #63ff7a;
+  --2mmol: #a0ffc6;
 }
 body {
   font-family: Ubuntu, sans-serif;
@@ -41,6 +43,12 @@ div.workout-tempo {
 }
 div.workout-cv {
   background-color: var(--cv);
+}
+div.workout-m-pace {
+  background-color: var(--m-pace);
+}
+div.workout-2mmol {
+  background-color: var(--2mmol);
 }
 div.workout-not-a-run {
   background-color: var(--not-a-run);

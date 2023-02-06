@@ -24,6 +24,8 @@ class RunSummaryPer:
         self.colourmap["CV"] = "#5afff2"
         self.colourmap["VO2max"] = "#e69f00"
         self.colourmap["Race pace"] = "#e69f00"
+        self.colourmap["M-pace"] = "#63ff7a"
+        self.colourmap["2mmol"] = "#a0ffc6"
 
     def colour(self):
         try:
