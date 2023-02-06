@@ -58,13 +58,22 @@ def days_to_weeks(list_of_days):
             all_weeks.append(that_week)
     return list(map(lambda iso: "{}-{}".format(iso.year, iso.week), all_weeks))
 
+
 def days_to_months(list_of_days):
-    all_months = list(dict.fromkeys(map(lambda d: "{}-{}".format(d.year, d.month), list_of_days)))
+    all_months = list(
+        dict.fromkeys(map(lambda d: "{}-{}".format(d.year, d.month), list_of_days))
+    )
     return all_months
 
 
 class Summary:
     def __init__(self, datekeys=[]):
+        # Takes format:
+        #  {
+        #    workouttype => {
+        #      key_for_a_date_or_period => distancevalue
+        #    }
+        #  }
         self.types = {}
         self.datekeys = [k for k in datekeys]
 
@@ -80,13 +89,37 @@ class Summary:
 
     def to_plottable(self):
         summaries = []
-        for typee in self.types:
+        sorted_types = sort_workout_types(list(self.types.keys()))
+        for typee in sorted_types:
             rsp = RunSummaryPer()
             rsp.label = typee
             rsp.keys = list(self.types[typee].keys())
             rsp.values = list(self.types[typee].values())
             summaries.append(rsp)
         return summaries
+
+
+def sort_workout_types(types):
+    """Returns new list with the types sorted as we want. Any unknown types are
+    put at the end."""
+    curated_types = [
+        "Recovery",
+        "GA",
+        "Endurance",
+        "2mmol",
+        "M-pace",
+        "Threshold",
+        "CV",
+        "VO2max",
+        "Repetition",
+        "Race",
+    ]
+    new_types = []
+    for curated_type in curated_types:
+        if curated_type in types:
+            new_types.append(curated_type)
+            types.remove(curated_type)
+    return new_types + types
 
 
 def create_run_summaries(list_of_runs):
@@ -142,7 +175,7 @@ def create_svg(summaries, time_name):
             )
             bottoms = [x + y for (x, y) in zip(bottoms, summary.values)]
 
-    ax.legend()
+    ax.legend(loc="lower left")
     ax.grid(axis="y")
     ax.set_xlabel("Date")
     ax.set_ylabel("Distance (km)")
