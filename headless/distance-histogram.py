@@ -13,6 +13,14 @@ runs = goldencheetah.get_all_activities(sport="Run")
 longest_distance_runs = sorted(runs, key=lambda a: a.distance, reverse=True)
 longest_time_runs = sorted(runs, key=lambda a: a.time_moving, reverse=True)
 
+one_year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+recent_longest_distance_runs = list(
+    filter(lambda r: r.date > one_year_ago, longest_distance_runs)
+)
+recent_longest_time_runs = list(
+    filter(lambda r: r.date > one_year_ago, longest_time_runs)
+)
+
 # for run in longest_distance_runs[:10]:
 #     print(run.distance, run.date)
 
@@ -35,9 +43,7 @@ def create_distance_histogram(distances):
 
     # Adding labels
     for i in range(len(values)):
-        axs.text(
-            i, values[i], int(values[i]), fontsize="x-small"
-        )
+        axs.text(i, values[i], int(values[i]), fontsize="x-small")
 
     tmpfile = BytesIO()
     fig.savefig(tmpfile, format="svg")
@@ -49,6 +55,10 @@ def create_distance_histogram(distances):
     index_of_greater_than = svg.find(">") + 1
     index_of_greater_than = svg.find(">", index_of_greater_than) + 1
     return svg[index_of_greater_than:]
+
+
+# Default is [6.4, 4.8] (width, height)
+plt.rcParams["figure.figsize"] = [10, 5]
 
 
 distance_svg = create_distance_histogram(
@@ -87,10 +97,10 @@ html = (
     + "<title>Distance histogram</title>"
     + "</head><body>"
     + distance_svg
-    + "<p>Longest distance</p>"
-    + make_table(longest_distance_runs[0:10])
-    + "<p>Longest time</p>"
-    + make_table(longest_time_runs[0:10])
+    + "<p>Recent longest distance</p>"
+    + make_table(recent_longest_distance_runs[0:10])
+    + "<p>Recent longest time</p>"
+    + make_table(recent_longest_time_runs[0:10])
     + "<footer><p>Generated on {}.</p></footer>".format(now)
     + "</body></html>"
 )
