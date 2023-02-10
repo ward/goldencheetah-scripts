@@ -200,6 +200,10 @@ def create_svg(summaries, time_name):
     return svg[index_of_greater_than:]
 
 
+# Change the plot sizes
+# Default is [6.4, 4.8] (width, height)
+plt.rcParams["figure.figsize"] = [10, 6]
+
 now = datetime.date.today()
 html = (
     "<!DOCTYPE html>"
