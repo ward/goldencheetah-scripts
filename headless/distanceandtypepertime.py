@@ -185,7 +185,7 @@ def create_svg(summaries, time_name):
     ax.set_ylabel("Distance (km)")
     ax.set_title("Distance and workouts per {}".format(time_name))
     ax.secondary_yaxis("right")
-    plt.xticks(rotation=45)
+    plt.xticks(rotation=90)
     # ax.minorticks_on()
 
     tmpfile = BytesIO()

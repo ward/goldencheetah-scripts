@@ -147,6 +147,7 @@ def write_training_log(f, activities):
         "<html>"
         "<head><title>Diary</title>"
         '<meta charset="utf-8" />'
+        '<meta name="viewport" content="width=device-width, initial-scale=1" />'
     )
     header_b = NEWLINE.join(
         [
