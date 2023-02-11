@@ -1,0 +1,16 @@
+body {
+  font-family: monospace;
+  font-size: 18px;
+}
+
+nav.file-listing {
+  display: flex;
+  flex-direction: column;
+  max-width: fit-content;
+}
+nav.file-listing a {
+  padding: 1em;
+  border: 1px solid;
+  text-decoration: none;
+  color: blue;
+}

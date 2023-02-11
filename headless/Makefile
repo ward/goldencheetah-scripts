@@ -2,7 +2,11 @@
 python_files = 5mm.py diary.py distance-histogram.py distancepertime.py distanceandtypepertime.py rolling-total.py training-log.py
 output_files = $(python_files:%.py=output/%.html)
 
-all: $(output_files)
+all: index.html
+
+# Don't make the index till after all graphs are made.
+index.html: index.py $(output_files)
+	python index.py
 
 rideDB.pickle: rideDB.json
 	python ridedb_to_pickle.py
