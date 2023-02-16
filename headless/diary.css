@@ -53,6 +53,15 @@ div.workout-2mmol {
 div.workout-not-a-run {
   background-color: var(--not-a-run);
 }
+div.workout-excuse {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: #fff;
+  color: lightgrey;
+  text-align: center;
+  font-style: italic;
+}
 div.week {
   display: grid;
   grid-template-areas:

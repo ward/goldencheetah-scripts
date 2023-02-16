@@ -9,6 +9,23 @@ import goldencheetah
 # so a syntax error when loading it back in afterwards
 NEWLINE = chr(10)
 
+HARDCODED_EXCUSES = {
+    datetime.date(2023, 1, 23): "Return from USA",
+    datetime.date(2023, 1, 9): "Food poisoning",
+    datetime.date(2022, 12, 29): "Non-covid respiratory suffering",
+    datetime.date(2022, 12, 23): "Fly to USA",
+    datetime.date(2022, 8, 15): "Travel London to Carqueiranne",
+    datetime.date(2022, 8, 3): "Blood blister + return from USA",
+    datetime.date(2022, 7, 15): "Fly to USA",
+    datetime.date(2022, 7, 3): "Left hip lateral",
+    datetime.date(2022, 6, 20): "COVID19",
+    datetime.date(2022, 6, 19): "COVID19",
+    datetime.date(2022, 6, 18): "COVID19",
+    datetime.date(2022, 6, 17): "COVID19",
+    datetime.date(2022, 4, 1): "Return from USA",
+    datetime.date(2022, 3, 18): "Headache, tired, fearing Tina's bronchitis",
+}
+
 
 def workout_importance(workout):
     if workout is None:
@@ -64,12 +81,20 @@ def write_days_activities(activities_for_the_day):
     return text
 
 
-def write_day(f, activities, idx):
+def write_day(f, activities, excuse, idx):
     """Given a list of activities for a day, writes the HTML for it.
     Requires an idx, i.e., the day's number in the week, to know how
     far left/right on the page things need to end up."""
+
+    # Only write out an excuse if there is no activity that day.
     if len(activities) == 0:
+        # If we have an excuse anyway
+        if excuse is None:
+            return
+        day = '<div class="day day-{} workout-excuse">{}</div>'.format(idx, excuse)
+        f.write(day)
         return
+
     # Amount *ran* that day
     distance = 0
     workout = None
@@ -119,7 +144,6 @@ def write_week(f, activities):
     day -> activities for that day."""
     days = [*activities]
     first_day = days[0]
-    last_day = days[-1]
     distance, time = sum_week_distance_time(activities)
     hours, minutes = goldencheetah.seconds_to_hours_minutes(time)
     isodate = first_day.isocalendar()
@@ -135,7 +159,7 @@ def write_week(f, activities):
     f.write(overview)
     f.write(header)
     for idx, day in enumerate(sorted(activities)):
-        write_day(f, activities[day], idx)
+        write_day(f, activities[day], HARDCODED_EXCUSES.get(day), idx)
     f.write(footer)
 
 
