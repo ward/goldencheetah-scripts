@@ -1,3 +1,4 @@
 output/
 rideDB.json
 rideDB.pickle
+conda-env/
