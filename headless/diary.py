@@ -10,6 +10,14 @@ import goldencheetah
 NEWLINE = chr(10)
 
 HARDCODED_EXCUSES = {
+    datetime.date(2023, 10, 11): "Roughed up by kine (still patella tendinitis…)",
+    datetime.date(2023, 10, 9): "Arrive and ded",
+    datetime.date(2023, 10, 8): "Fly Bogota→Home",
+    datetime.date(2023, 9, 7): "Do nothing, wait for kine apt (patella tendinitis)",
+    datetime.date(2023, 9, 6): "Do nothing, wait for kine apt (patella tendinitis)",
+    datetime.date(2023, 9, 4): "Do nothing, wait for kine apt (patella tendinitis)",
+    datetime.date(2023, 8, 28): "Give knee some more rest (patella tendinitis)",
+    datetime.date(2023, 8, 22): "Give knee some rest (eventually: patella tendinitis)",
     datetime.date(2023, 8, 1): "Fly",
     datetime.date(2023, 7, 30): "Ill: breathing, exhaustion + pulled back",
     datetime.date(2023, 7, 29): "Ill: breathing, exhaustion",
@@ -161,17 +169,37 @@ def write_day(f, activities, excuse, idx):
     f.write(day)
 
 
+class WeekSum:
+    distance: float = 0
+    time: int = 0
+    bike_distance: float = 0
+    bike_time: int = 0
+    walk_distance: float = 0
+    walk_time: int = 0
+    elliptical_time: int = 0
+
+    def add_activity(self, activity):
+        if activity.sport == "Run":
+            self.distance = self.distance + activity.distance
+            self.time = self.time + activity.time_moving
+        elif activity.sport == "Bike":
+            self.bike_distance = self.bike_distance + activity.distance
+            self.bike_time = self.bike_time + activity.time_moving
+        elif activity.sport == "Walk":
+            self.walk_distance = self.walk_distance + activity.distance
+            self.walk_time = self.walk_time + activity.time_moving
+        elif activity.sport == "Elliptical":
+            self.elliptical_time = self.elliptical_time + activity.time_moving
+
+
 def sum_week_distance_time(activities):
     """Given a week of activities, i.e. a dict of day->activitiesforthatday,
     sums up all the distances and times for runs, and returns them"""
-    distance = 0
-    time = 0
+    sums = WeekSum()
     for day in activities:
         for activity in activities[day]:
-            if activity.sport == "Run":
-                distance = distance + activity.distance
-                time = time + activity.time_moving
-    return (distance, time)
+            sums.add_activity(activity)
+    return sums
 
 
 def write_week(f, activities):
@@ -179,8 +207,8 @@ def write_week(f, activities):
     day -> activities for that day."""
     days = [*activities]
     first_day = days[0]
-    distance, time = sum_week_distance_time(activities)
-    hours, minutes = goldencheetah.seconds_to_hours_minutes(time)
+    sums = sum_week_distance_time(activities)
+    hours, minutes = goldencheetah.seconds_to_hours_minutes(sums.time)
     isodate = first_day.isocalendar()
     overview = (
         NEWLINE + '<div class="week">'
@@ -188,7 +216,24 @@ def write_week(f, activities):
         '<p class="total-distance">{:.1f} km</p>'
         '<p class="total-time">{:d}h{:02d}</p>'
     )
-    overview = overview.format(isodate.year, isodate.week, distance, hours, minutes)
+    overview = overview.format(
+        isodate.year, isodate.week, sums.distance, hours, minutes
+    )
+    if sums.bike_distance > 0:
+        bike_html = '<p class="total-biking">{:.0f}km, {:d}h{:02d}</p>'
+        hours, minutes = goldencheetah.seconds_to_hours_minutes(sums.bike_time)
+        bike_html = bike_html.format(sums.bike_distance, hours, minutes)
+        overview += bike_html
+    if sums.walk_distance > 0:
+        walk_html = '<p class="total-walking">{:.0f}km, {:d}h{:02d}</p>'
+        hours, minutes = goldencheetah.seconds_to_hours_minutes(sums.walk_time)
+        walk_html = walk_html.format(sums.walk_distance, hours, minutes)
+        overview += walk_html
+    if sums.elliptical_time > 0:
+        ell_html = '<p class="total-elliptical">{:d}h{:02d}</p>'
+        hours, minutes = goldencheetah.seconds_to_hours_minutes(sums.elliptical_time)
+        ell_html = ell_html.format(hours, minutes)
+        overview += ell_html
     header = ""
     footer = "" "</div>"
     f.write(overview)

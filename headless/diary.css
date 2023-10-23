@@ -67,7 +67,10 @@ div.week {
   grid-template-areas:
     "when day-0 day-1 day-2 day-3 day-4 day-5 day-6"
     "total-distance day-0 day-1 day-2 day-3 day-4 day-5 day-6"
-    "total-time day-0 day-1 day-2 day-3 day-4 day-5 day-6";
+    "total-time day-0 day-1 day-2 day-3 day-4 day-5 day-6"
+    "total-biking day-0 day-1 day-2 day-3 day-4 day-5 day-6"
+    "total-walking day-0 day-1 day-2 day-3 day-4 day-5 day-6"
+    "total-elliptical day-0 day-1 day-2 day-3 day-4 day-5 day-6";
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr;
   border-bottom: 1px solid lightgrey;
@@ -75,7 +78,7 @@ div.week {
 @media (max-width: 1000px) {
   div.week {
     grid-template:
-      "when when total-distance total-distance total-distance total-time total-time"
+      "when when total-distance total-time total-biking total-walking total-elliptical"
       "day-0 day-1 day-2 day-3 day-4 day-5 day-6"
       / 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
   }
@@ -84,6 +87,7 @@ div.week {
   div.week {
     grid-template:
       "when total-distance total-time"
+      "total-biking total-walking total-elliptical"
       "day-6 day-6 day-6"
       "day-5 day-5 day-5"
       "day-4 day-4 day-4"
@@ -100,6 +104,30 @@ div.week time.when {
 div.week p.total-time {
   grid-area: total-time;
   margin: auto 0;
+}
+div.week p.total-biking {
+  grid-area: total-biking;
+  margin: auto 0;
+  font-size: 0.8em;
+}
+div.week p.total-biking::before {
+  content: "🚴 ";
+}
+div.week p.total-walking {
+  grid-area: total-walking;
+  margin: auto 0;
+  font-size: 0.8em;
+}
+div.week p.total-walking::before {
+  content: "🚶 ";
+}
+div.week p.total-elliptical {
+  grid-area: total-elliptical;
+  margin: auto 0;
+  font-size: 0.8em;
+}
+div.week p.total-elliptical::before {
+  content: "E ";
 }
 div.week p.total-distance {
   grid-area: total-distance;
