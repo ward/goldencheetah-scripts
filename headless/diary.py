@@ -10,6 +10,17 @@ import goldencheetah
 NEWLINE = chr(10)
 
 HARDCODED_EXCUSES = {
+    datetime.date(2024, 6, 5): "Flying",
+    datetime.date(2024, 5, 26): "Exhaustion, lying around",
+    datetime.date(2024, 4, 27): "Respiratory illness",
+    datetime.date(2024, 4, 26): "Respiratory illness",
+    datetime.date(2024, 4, 22): "Public defence",
+    datetime.date(2024, 3, 22): "Private defence",
+    datetime.date(2024, 3, 10): "Montchabrol",
+    datetime.date(2024, 2, 21): "Dissertation done ⇒ drinks",
+    datetime.date(2024, 1, 14): "Fly (and tired)",
+    datetime.date(2024, 1, 13): "Fly (and lazy)",
+    datetime.date(2023, 11, 27): "No time",
     datetime.date(2023, 10, 11): "Roughed up by kine (still patella tendinitis…)",
     datetime.date(2023, 10, 9): "Arrive and ded",
     datetime.date(2023, 10, 8): "Fly Bogota→Home",
