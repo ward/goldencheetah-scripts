@@ -7,3 +7,16 @@ p {
   margin-left: auto;
   margin-right: auto;
 }
+table {
+  margin: 1em auto;
+  text-align: right;
+  border-collapse: separate;
+  border-spacing: 0.8em 0.1em;
+}
+th {
+  border-bottom: 1px solid black;
+}
+/* Only left, we are right aligning so that padding makes it look ugly with the borders */
+td {
+  padding-left: 0.3em;
+}

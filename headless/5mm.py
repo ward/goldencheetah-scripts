@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import goldencheetah
 
 # How much we are hoping to hit in a year
-GOAL_DISTANCES = [5000, 4000, 3000]
+GOAL_DISTANCES = [5000, 4000, 3000, 2000, 1000]
 
 # Get runs
 runs = goldencheetah.get_all_activities(sport="Run")
@@ -75,22 +75,86 @@ def calculate_goal_stats(cumul_per_day, goal, days):
     }
 
 
-def create_textual_overview(cumul_per_day, goal, days):
-    stats = calculate_goal_stats(cumul_per_day, goal, days)
-    result = "<p>You have run {:,.1f} km so far (extrapolated: {:,.1f}). "
-    if stats["ran_so_far"] > stats["should_have_ran"]:
-        result += "You are {:,.1f} km ahead of where you should be today ({:,.1f}). "
-    else:
-        result += "You are {:,.1f} km behind where you should be today ({:,.1f}). "
-    result += "To reach your goal, you need {:,.1f} per day ({:,.1f} per week) from tomorrow onwards.</p>"
-    result = result.format(
-        stats["ran_so_far"],
-        stats["current_extrapolated"],
-        abs(stats["ran_so_far"] - stats["should_have_ran"]),
-        stats["should_have_ran"],
-        stats["per_day_from_now_on"],
-        7 * stats["per_day_from_now_on"],
+def create_donesofar_table(cumul_per_day, days):
+    stats = calculate_goal_stats(cumul_per_day, 1, days)
+    result = "<table>"
+    result += "<tr>" "<th>So Far</th>" "<th>Extrapolated</th>" "</tr>"
+    row = "<tr>" "<td>{:,.1f}</td>" "<td>{:,.1f}</td>" "</tr>"
+    result += row.format(stats["ran_so_far"], stats["current_extrapolated"])
+    result += "</table>"
+    return result
+
+
+def create_goals_table(cumul_per_day, goals: list[int], days):
+    """Return a string that gets rendered as a table in HTML"""
+    result = "<table>"
+    result += (
+        "<tr>"
+        '<th style="text-align: center" colspan="3">Goal</th>'
+        '<th style="text-align: center" colspan="2">So Far</th>'
+        '<th style="text-align: center" colspan="3">To Go</th>'
+        "</tr>"
     )
+    result += (
+        "<tr>"
+        "<th>total</th>"
+        "<th>/d</th>"
+        "<th>/w</th>"
+        "<th>goal</th>"
+        "<th>diff</th>"
+        "<th>total</th>"
+        "<th>/d</th>"
+        "<th>/w</th>"
+        "</tr>"
+    )
+    for goal in goals:
+        stats = calculate_goal_stats(cumul_per_day, goal, days)
+        goal_reached = stats["ran_so_far"] >= goal
+        # Resolve code duplication
+        if goal_reached:
+            row = (
+                "<tr>"
+                "<td>{:,.1f}</td>"
+                "<td>{:,.1f}</td>"
+                "<td>{:,.1f}</td>"
+                "<td>{:,.1f}</td>"
+                "<td>{:,.1f}</td>"
+                "<td>✓</td>"
+                "<td>✓</td>"
+                "<td>✓</td>"
+                "</tr>"
+            )
+            result += row.format(
+                goal,
+                stats["per_day"],
+                7 * stats["per_day"],
+                stats["should_have_ran"],
+                stats["ran_so_far"] - stats["should_have_ran"],
+            )
+        else:
+            row = (
+                "<tr>"
+                "<td>{:,.1f}</td>"
+                "<td>{:,.1f}</td>"
+                "<td>{:,.1f}</td>"
+                "<td>{:,.1f}</td>"
+                "<td>{:,.1f}</td>"
+                "<td>{:,.1f}</td>"
+                "<td>{:,.1f}</td>"
+                "<td>{:,.1f}</td>"
+                "</tr>"
+            )
+            result += row.format(
+                goal,
+                stats["per_day"],
+                7 * stats["per_day"],
+                stats["should_have_ran"],
+                stats["ran_so_far"] - stats["should_have_ran"],
+                goal - stats["ran_so_far"],
+                stats["per_day_from_now_on"],
+                7 * stats["per_day_from_now_on"],
+            )
+    result += "</table>"
     return result
 
 
@@ -147,7 +211,8 @@ html = (
     + "<title>5 MEGA METER</title>"
     + "</head><body>"
     + create_svg(cumul_per_day, years_days)
-    + create_textual_overview(cumul_per_day, GOAL_DISTANCES[0], years_days)
+    + create_donesofar_table(cumul_per_day, years_days)
+    + create_goals_table(cumul_per_day, GOAL_DISTANCES, years_days)
     + "<footer><p>Generated on {}.</p></footer>".format(now)
     + "</body></html>"
 )
