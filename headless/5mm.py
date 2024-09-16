@@ -88,6 +88,8 @@ def create_donesofar_table(cumul_per_day, days):
 def create_goals_table(cumul_per_day, goals: list[int], days):
     """Return a string that gets rendered as a table in HTML"""
     result = "<table>"
+
+    # Header
     result += (
         "<tr>"
         '<th style="text-align: center" colspan="3">Goal</th>'
@@ -107,53 +109,41 @@ def create_goals_table(cumul_per_day, goals: list[int], days):
         "<th>/w</th>"
         "</tr>"
     )
+
+    # Individual rows per goal
     for goal in goals:
         stats = calculate_goal_stats(cumul_per_day, goal, days)
         goal_reached = stats["ran_so_far"] >= goal
-        # Resolve code duplication
+
+        row = (
+            "<tr>"
+            "<td>{:,.1f}</td>"
+            "<td>{:,.1f}</td>"
+            "<td>{:,.1f}</td>"
+            "<td>{:,.1f}</td>"
+            "<td>{:,.1f}</td>"
+        )
+        row = row.format(
+            goal,
+            stats["per_day"],
+            7 * stats["per_day"],
+            stats["should_have_ran"],
+            stats["ran_so_far"] - stats["should_have_ran"],
+        )
+
         if goal_reached:
-            row = (
-                "<tr>"
-                "<td>{:,.1f}</td>"
-                "<td>{:,.1f}</td>"
-                "<td>{:,.1f}</td>"
-                "<td>{:,.1f}</td>"
-                "<td>{:,.1f}</td>"
-                "<td>✓</td>"
-                "<td>✓</td>"
-                "<td>✓</td>"
-                "</tr>"
-            )
-            result += row.format(
-                goal,
-                stats["per_day"],
-                7 * stats["per_day"],
-                stats["should_have_ran"],
-                stats["ran_so_far"] - stats["should_have_ran"],
-            )
+            row += "<td>✓</td>" "<td>✓</td>" "<td>✓</td>"
         else:
-            row = (
-                "<tr>"
-                "<td>{:,.1f}</td>"
-                "<td>{:,.1f}</td>"
-                "<td>{:,.1f}</td>"
-                "<td>{:,.1f}</td>"
-                "<td>{:,.1f}</td>"
-                "<td>{:,.1f}</td>"
-                "<td>{:,.1f}</td>"
-                "<td>{:,.1f}</td>"
-                "</tr>"
-            )
-            result += row.format(
-                goal,
-                stats["per_day"],
-                7 * stats["per_day"],
-                stats["should_have_ran"],
-                stats["ran_so_far"] - stats["should_have_ran"],
+            row += "<td>{:,.1f}</td>" "<td>{:,.1f}</td>" "<td>{:,.1f}</td>"
+            row = row.format(
                 goal - stats["ran_so_far"],
                 stats["per_day_from_now_on"],
                 7 * stats["per_day_from_now_on"],
             )
+        row += "</tr>"
+
+        result += row
+
     result += "</table>"
     return result
 
