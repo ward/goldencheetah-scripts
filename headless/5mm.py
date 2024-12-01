@@ -28,6 +28,7 @@ class GoalProgress:
     per_day_from_now_on_with_today: float
 
     current_extrapolated: float
+    """Takes distance run this year to date and extrapolates to the entire year"""
 
     _avg_so_far_per_day: float
 
@@ -60,15 +61,6 @@ class GoalProgress:
         total_days = (days[-1] - days[0]).days + 1
         self._avg_so_far_per_day = self.ran_so_far / days_passed
         self.current_extrapolated = self._avg_so_far_per_day * total_days
-
-        return {
-            "per_day": self.per_day,
-            "ran_so_far": self.ran_so_far,
-            "should_have_ran": self.should_have_ran,
-            "per_day_from_now_on": self.per_day_from_now_on,
-            "per_day_from_now_on_with_today": self.per_day_from_now_on_with_today,
-            "current_extrapolated": self.current_extrapolated,
-        }
 
     def to_html_row(self, goal_reached: bool = False) -> str:
         if self.actual:
@@ -192,7 +184,7 @@ def create_goals_table(cumul_per_day, goals: list[int], days):
         goal_progress.calculate_goal_stats(cumul_per_day, goal, days)
         goal_reached = goal_progress.ran_so_far >= goal
 
-        if goal_reached and not already_added_goal:
+        if goal_progress.current_extrapolated >= goal and not already_added_goal:
             already_added_goal = True
             actual = GoalProgress(actual=True)
             # The goal distance we add here does not matter, we only care to
