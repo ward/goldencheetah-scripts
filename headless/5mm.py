@@ -8,6 +8,97 @@ import goldencheetah
 # How much we are hoping to hit in a year
 GOAL_DISTANCES = [5000, 4000, 3000, 2000, 1000]
 
+
+class GoalProgress:
+    actual: bool
+
+    goal: float
+    """Distance to run in the current year"""
+
+    per_day: float
+    """Units of distance to run per day to reach the given goal"""
+
+    ran_so_far: float
+    """Distance run so far in the current year"""
+
+    should_have_ran: float
+
+    per_day_from_now_on: float
+
+    per_day_from_now_on_with_today: float
+
+    current_extrapolated: float
+
+    def __init__(self, actual: bool = False):
+        self.actual = actual
+
+    def calculate_goal_stats(
+        self,
+        cumul_per_day: dict[datetime.date, float | None],
+        goal: float,
+        days: list[datetime.date],
+    ):
+        self.goal = goal
+        today = datetime.date.today()
+        current_distance_ran = cumul_per_day[today]
+        assert current_distance_ran is not None
+        self.ran_so_far = current_distance_ran
+
+        self.per_day = self.goal / len(days)
+        # tm_yday starts at 1, so we do not need to do + per_day
+        self.should_have_ran = self.per_day * today.timetuple().tm_yday
+
+        days_left = (days[-1] - today).days
+        self.per_day_from_now_on = (self.goal - self.ran_so_far) / days_left
+        self.per_day_from_now_on_with_today = (self.goal - self.ran_so_far) / (
+            days_left + 1
+        )
+
+        days_passed = (today - days[0]).days + 1
+        total_days = (days[-1] - days[0]).days + 1
+        avg_so_far_per_day = self.ran_so_far / days_passed
+        self.current_extrapolated = avg_so_far_per_day * total_days
+
+        return {
+            "per_day": self.per_day,
+            "ran_so_far": self.ran_so_far,
+            "should_have_ran": self.should_have_ran,
+            "per_day_from_now_on": self.per_day_from_now_on,
+            "per_day_from_now_on_with_today": self.per_day_from_now_on_with_today,
+            "current_extrapolated": self.current_extrapolated,
+        }
+
+    def to_html_row(self, goal_reached: bool) -> str:
+        row = (
+            "<tr>"
+            "<td>{:,.1f}</td>"
+            "<td>{:,.1f}</td>"
+            "<td>{:,.1f}</td>"
+            "<td>{:,.1f}</td>"
+            "<td>{:,.1f}</td>"
+        )
+        row = row.format(
+            self.goal,
+            self.per_day,
+            7 * self.per_day,
+            self.should_have_ran,
+            self.ran_so_far - self.should_have_ran,
+        )
+
+        if goal_reached:
+            row += "<td>✓</td>" "<td>✓</td>" "<td>✓</td>"
+        else:
+            row += "<td>{:,.1f}</td>" "<td>{:,.1f}</td>" "<td>{:,.1f}</td>"
+            row = row.format(
+                self.goal - self.ran_so_far,
+                self.per_day_from_now_on,
+                7 * self.per_day_from_now_on,
+            )
+        row += "</tr>"
+
+        return row
+
+
 # Get runs
 runs = goldencheetah.get_all_activities(sport="Run")
 
@@ -18,7 +109,7 @@ end_year = datetime.date(year=current_year, month=12, day=31)
 years_days = goldencheetah.days_range(start_year, end_year)
 
 # Set 0 distance on every day, creates the keys in dict
-distance_per_day = {}
+distance_per_day: dict[datetime.date, float] = {}
 for day in years_days:
     distance_per_day[day] = 0
 
@@ -29,7 +120,7 @@ for run in runs:
         distance_per_day[day] += run.distance
 
 # Count the cumul. Set None once past today (so it won't get plotted).
-cumul_per_day = {}
+cumul_per_day: dict[datetime.date, float | None] = {}
 current_sum = 0
 today = datetime.date.today()
 for day in years_days:
@@ -48,39 +139,13 @@ def create_goal_values(goal, days):
     return [per_day + per_day * i for i in range(len(days))]
 
 
-def calculate_goal_stats(cumul_per_day, goal, days):
-    today = datetime.date.today()
-    current_distance_ran = cumul_per_day[today]
-
-    per_day = goal / len(days)
-    # tm_yday starts at 1, so we do not need to do + per_day
-    goal_distance_ran = per_day * today.timetuple().tm_yday
-
-    days_left = (days[-1] - today).days
-    per_day_from_now_on = (goal - current_distance_ran) / days_left
-    per_day_from_now_on_with_today = (goal - current_distance_ran) / (days_left + 1)
-
-    days_passed = (today - days[0]).days + 1
-    total_days = (days[-1] - days[0]).days + 1
-    avg_so_far_per_day = current_distance_ran / days_passed
-    current_extrapolated = avg_so_far_per_day * total_days
-
-    return {
-        "per_day": per_day,
-        "ran_so_far": current_distance_ran,
-        "should_have_ran": goal_distance_ran,
-        "per_day_from_now_on": per_day_from_now_on,
-        "per_day_from_now_on_with_today": per_day_from_now_on_with_today,
-        "current_extrapolated": current_extrapolated,
-    }
-
-
 def create_donesofar_table(cumul_per_day, days):
-    stats = calculate_goal_stats(cumul_per_day, 1, days)
+    goal_progress = GoalProgress(actual=True)
+    goal_progress.calculate_goal_stats(cumul_per_day, 1, days)
     result = "<table>"
     result += "<tr>" "<th>So Far</th>" "<th>Extrapolated</th>" "</tr>"
     row = "<tr>" "<td>{:,.1f}</td>" "<td>{:,.1f}</td>" "</tr>"
-    result += row.format(stats["ran_so_far"], stats["current_extrapolated"])
+    result += row.format(goal_progress.ran_so_far, goal_progress.current_extrapolated)
     result += "</table>"
     return result
 
@@ -111,36 +176,14 @@ def create_goals_table(cumul_per_day, goals: list[int], days):
     )
 
     # Individual rows per goal
+    # TODO: Clean way to put current progress and extrapolation in that table
+    # in the correct position.
     for goal in goals:
-        stats = calculate_goal_stats(cumul_per_day, goal, days)
-        goal_reached = stats["ran_so_far"] >= goal
+        goal_progress = GoalProgress()
+        goal_progress.calculate_goal_stats(cumul_per_day, goal, days)
+        goal_reached = goal_progress.ran_so_far >= goal
 
-        row = (
-            "<tr>"
-            "<td>{:,.1f}</td>"
-            "<td>{:,.1f}</td>"
-            "<td>{:,.1f}</td>"
-            "<td>{:,.1f}</td>"
-            "<td>{:,.1f}</td>"
-        )
-        row = row.format(
-            goal,
-            stats["per_day"],
-            7 * stats["per_day"],
-            stats["should_have_ran"],
-            stats["ran_so_far"] - stats["should_have_ran"],
-        )
-
-        if goal_reached:
-            row += "<td>✓</td>" "<td>✓</td>" "<td>✓</td>"
-        else:
-            row += "<td>{:,.1f}</td>" "<td>{:,.1f}</td>" "<td>{:,.1f}</td>"
-            row = row.format(
-                goal - stats["ran_so_far"],
-                stats["per_day_from_now_on"],
-                7 * stats["per_day_from_now_on"],
-            )
-        row += "</tr>"
+        row = goal_progress.to_html_row(goal_reached)
 
         result += row
 
