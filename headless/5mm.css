@@ -20,3 +20,8 @@ th {
 td {
   padding-left: 0.3em;
 }
+/* Special row in table for current progress */
+tr.actual {
+  text-decoration: underline dotted;
+  color: #1f77b4;
+}

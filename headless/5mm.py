@@ -29,6 +29,8 @@ class GoalProgress:
 
     current_extrapolated: float
 
+    _avg_so_far_per_day: float
+
     def __init__(self, actual: bool = False):
         self.actual = actual
 
@@ -56,8 +58,8 @@ class GoalProgress:
 
         days_passed = (today - days[0]).days + 1
         total_days = (days[-1] - days[0]).days + 1
-        avg_so_far_per_day = self.ran_so_far / days_passed
-        self.current_extrapolated = avg_so_far_per_day * total_days
+        self._avg_so_far_per_day = self.ran_so_far / days_passed
+        self.current_extrapolated = self._avg_so_far_per_day * total_days
 
         return {
             "per_day": self.per_day,
@@ -68,7 +70,26 @@ class GoalProgress:
             "current_extrapolated": self.current_extrapolated,
         }
 
-    def to_html_row(self, goal_reached: bool) -> str:
+    def to_html_row(self, goal_reached: bool = False) -> str:
+        if self.actual:
+            return (
+                '<tr class="actual" title="This row is current progress extrapolated">'
+                "<td>{:,.1f}</td>"
+                "<td>{:,.1f}</td>"
+                "<td>{:,.1f}</td>"
+                "<td>{:,.1f}</td>"
+                "<td></td>"
+                "<td></td>"
+                "<td></td>"
+                "<td></td>"
+                "</tr>"
+            ).format(
+                self.current_extrapolated,
+                self._avg_so_far_per_day,
+                7 * self._avg_so_far_per_day,
+                self.ran_so_far,
+            )
+
         row = (
             "<tr>"
             "<td>{:,.1f}</td>"
@@ -139,17 +160,6 @@ def create_goal_values(goal, days):
     return [per_day + per_day * i for i in range(len(days))]
 
 
-def create_donesofar_table(cumul_per_day, days):
-    goal_progress = GoalProgress(actual=True)
-    goal_progress.calculate_goal_stats(cumul_per_day, 1, days)
-    result = "<table>"
-    result += "<tr>" "<th>So Far</th>" "<th>Extrapolated</th>" "</tr>"
-    row = "<tr>" "<td>{:,.1f}</td>" "<td>{:,.1f}</td>" "</tr>"
-    result += row.format(goal_progress.ran_so_far, goal_progress.current_extrapolated)
-    result += "</table>"
-    return result
-
-
 def create_goals_table(cumul_per_day, goals: list[int], days):
     """Return a string that gets rendered as a table in HTML"""
     result = "<table>"
@@ -176,15 +186,31 @@ def create_goals_table(cumul_per_day, goals: list[int], days):
     )
 
     # Individual rows per goal
-    # TODO: Clean way to put current progress and extrapolation in that table
-    # in the correct position.
+    already_added_goal = False
     for goal in goals:
         goal_progress = GoalProgress()
         goal_progress.calculate_goal_stats(cumul_per_day, goal, days)
         goal_reached = goal_progress.ran_so_far >= goal
 
+        if goal_reached and not already_added_goal:
+            already_added_goal = True
+            actual = GoalProgress(actual=True)
+            # The goal distance we add here does not matter, we only care to
+            # have progress and such in it.
+            actual.calculate_goal_stats(cumul_per_day, 1, days)
+            row = actual.to_html_row()
+            result += row
+
         row = goal_progress.to_html_row(goal_reached)
 
+        result += row
+
+    if not already_added_goal:
+        actual = GoalProgress(actual=True)
+        # The goal distance we add here does not matter, we only care to
+        # have progress and such in it.
+        actual.calculate_goal_stats(cumul_per_day, 1, days)
+        row = actual.to_html_row()
         result += row
 
     result += "</table>"
@@ -244,7 +270,6 @@ html = (
     + "<title>5 MEGA METER</title>"
     + "</head><body>"
     + create_svg(cumul_per_day, years_days)
-    + create_donesofar_table(cumul_per_day, years_days)
     + create_goals_table(cumul_per_day, GOAL_DISTANCES, years_days)
     + "<footer><p>Generated on {}.</p></footer>".format(now)
     + "</body></html>"
