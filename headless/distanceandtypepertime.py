@@ -178,7 +178,7 @@ def create_svg(summaries, time_name):
     # Put legend with labels in reverse order to match the order they appear in
     # the stacked bar chart.
     handles, labels = ax.get_legend_handles_labels()
-    ax.legend(reversed(handles), reversed(labels), loc="lower left")
+    ax.legend(list(reversed(handles)), list(reversed(labels)), loc="lower left")
 
     ax.grid(axis="y")
     ax.set_xlabel("Date")
