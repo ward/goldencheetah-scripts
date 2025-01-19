@@ -10,6 +10,13 @@ import goldencheetah
 NEWLINE = chr(10)
 
 HARDCODED_EXCUSES = {
+    datetime.date(2024, 12, 18): "Landing & jetlag",
+    datetime.date(2024, 12, 17): "Flying",
+    datetime.date(2024, 12, 14): "Too lazy",
+    datetime.date(2024, 10, 21): "Interviewing",
+    datetime.date(2024, 9, 30): "Twisted ankle, swollen",
+    datetime.date(2024, 8, 25): "Flying",
+    datetime.date(2024, 7, 30): "Landing & jetlag",
     datetime.date(2024, 6, 5): "Flying",
     datetime.date(2024, 5, 26): "Exhaustion, lying around",
     datetime.date(2024, 4, 27): "Respiratory illness",
@@ -288,8 +295,21 @@ def write_css(f):
         css = NEWLINE + '<style type="text/css">' + contents + "</style>" + NEWLINE
         f.write(css)
 
+def adjust_date_of_activity(activity: goldencheetah.Activity):
+    """Mutates the date(time) of the activity based on finding a `tz:utc±N` in
+    the activity's keywords."""
+    for kw in activity.keywords:
+        if kw.startswith("tz:utc"):
+            try:
+                offset = int(kw[6:])
+                activity.date = activity.date + datetime.timedelta(hours=offset)
+                return
+            except ValueError:
+                pass
 
 all_activities = goldencheetah.get_all_activities(sport=None)
+for activity in all_activities:
+    adjust_date_of_activity(activity)
 all_activities = goldencheetah.group_by_week(all_activities)
 
 try:

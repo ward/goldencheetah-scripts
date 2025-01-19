@@ -16,22 +16,14 @@ def parse_ridedb():
         data = json.load(f)
         return data["RIDES"]
 
-def ridedb_to_pickle():
-    ridedb = parse_ridedb()
-    activities = list(map(lambda d: Activity(d), ridedb))
-    with open(PICKLE_FILE, "wb") as f:
-        pickle.dump(activities, f)
-
-def pickle_to_activities():
-    """Read in the pickle file that has parsed activities."""
-    with open(PICKLE_FILE, "rb") as f:
-        activities = pickle.load(f)
-        return activities
-
 
 class Activity:
     def __init__(self, ridedb_entry):
         """Parse from a ridedb entry"""
+        # This time seems to be UTC... so that is annoying. Going to start to
+        # make a habit of marking some activities with a `tz:utc±N` in the
+        # keywords. Feels like a bandaid, but works also for activities without
+        # a GPS track to use for a location.
         self.date = datetime.datetime.strptime(
             ridedb_entry["date"], "%Y/%m/%d %H:%M:%S %Z"
         )
@@ -58,9 +50,9 @@ class Activity:
             self.workout_code = workout_code
 
         # Keywords
-        self.keywords = []
+        self.keywords: list[str] = []
         try:
-            keywords = ridedb_entry["TAGS"]["Keywords"].split(",")
+            keywords: list[str] = ridedb_entry["TAGS"]["Keywords"].split(",")
             for keyword in keywords:
                 keyword = keyword.strip()
                 if keyword != "":
@@ -74,16 +66,29 @@ class Activity:
         )
 
 
-def get_all_activities(sport="Run"):
+def ridedb_to_pickle():
+    ridedb = parse_ridedb()
+    activities = list(map(lambda d: Activity(d), ridedb))
+    with open(PICKLE_FILE, "wb") as f:
+        pickle.dump(activities, f)
+
+
+def pickle_to_activities() -> list[Activity]:
+    """Read in the pickle file that has parsed activities."""
+    with open(PICKLE_FILE, "rb") as f:
+        activities = pickle.load(f)
+        return activities
+
+
+def get_all_activities(sport="Run") -> list[Activity]:
     """Reads activities from pickle. Filters on given sport. No filtering if
     sport is None."""
     activities = pickle_to_activities()
     if sport is None:
         return activities
     else:
-        runs = list(filter(lambda act: act.sport == sport, activities))
+        runs: list[Activity] = list(filter(lambda act: act.sport == sport, activities))
         return runs
-
 
 
 def days_range(start_day, end_day):
@@ -115,9 +120,9 @@ def seconds_to_hours_minutes(seconds):
     return (hours, minutes)
 
 
-def days_range_normalised_to_week(start_day, end_day):
-    """Create a list with every day from Monday of the week of the start to
-    Sunday of the week of the end (inclusive)."""
+def days_range_normalised_to_week(start_day: datetime.date, end_day: datetime.date) -> list[datetime.date]:
+    """Create a list with every day from Monday of the week of start_day to
+    Sunday of the week of the end_day (inclusive)."""
     # Set start_day to the Monday (.weekday() is 0 based)
     start_day = start_day - datetime.timedelta(days=start_day.weekday())
     # Set end_day to the Sunday
@@ -135,7 +140,7 @@ def group_by_week(activities):
     all_days = days_range_normalised_to_week(
         activities[0].date.date(), activities[-1].date.date()
     )
-    activities_by_day = {}
+    activities_by_day: dict[datetime.date, list[Activity]] = {}
     for day in all_days:
         activities_by_day[day] = list()
 
