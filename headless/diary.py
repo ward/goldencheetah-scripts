@@ -195,6 +195,8 @@ class WeekSum:
     walk_distance: float = 0
     walk_time: int = 0
     elliptical_time: int = 0
+    swim_distance: float = 0
+    swim_time: int = 0
 
     def add_activity(self, activity):
         if activity.sport == "Run":
@@ -208,6 +210,9 @@ class WeekSum:
             self.walk_time = self.walk_time + activity.time_moving
         elif activity.sport == "Elliptical":
             self.elliptical_time = self.elliptical_time + activity.time_moving
+        elif activity.sport == "Swim":
+            self.swim_distance = self.swim_distance + activity.distance
+            self.swim_time = self.swim_time + activity.time_moving
 
 
 def sum_week_distance_time(activities):
@@ -247,6 +252,11 @@ def write_week(f, activities):
         hours, minutes = goldencheetah.seconds_to_hours_minutes(sums.walk_time)
         walk_html = walk_html.format(sums.walk_distance, hours, minutes)
         overview += walk_html
+    if sums.swim_distance > 0:
+        swim_html = '<p class="total-swimming">{:.0f}m, {:d}h{:02d}</p>'
+        hours, minutes = goldencheetah.seconds_to_hours_minutes(sums.swim_time)
+        swim_html = swim_html.format(sums.swim_distance * 1000, hours, minutes)
+        overview += swim_html
     if sums.elliptical_time > 0:
         ell_html = '<p class="total-elliptical">{:d}h{:02d}</p>'
         hours, minutes = goldencheetah.seconds_to_hours_minutes(sums.elliptical_time)
@@ -295,6 +305,7 @@ def write_css(f):
         css = NEWLINE + '<style type="text/css">' + contents + "</style>" + NEWLINE
         f.write(css)
 
+
 def adjust_date_of_activity(activity: goldencheetah.Activity):
     """Mutates the date(time) of the activity based on finding a `tz:utc±N` in
     the activity's keywords."""
@@ -306,6 +317,7 @@ def adjust_date_of_activity(activity: goldencheetah.Activity):
                 return
             except ValueError:
                 pass
+
 
 all_activities = goldencheetah.get_all_activities(sport=None)
 for activity in all_activities:

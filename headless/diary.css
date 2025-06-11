@@ -70,6 +70,7 @@ div.week {
     "total-time day-0 day-1 day-2 day-3 day-4 day-5 day-6"
     "total-biking day-0 day-1 day-2 day-3 day-4 day-5 day-6"
     "total-walking day-0 day-1 day-2 day-3 day-4 day-5 day-6"
+    "total-swimming day-0 day-1 day-2 day-3 day-4 day-5 day-6"
     "total-elliptical day-0 day-1 day-2 day-3 day-4 day-5 day-6";
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr;
@@ -78,7 +79,7 @@ div.week {
 @media (max-width: 1000px) {
   div.week {
     grid-template:
-      "when when total-distance total-time total-biking total-walking total-elliptical"
+      "when total-distance total-time total-biking total-walking total-swimming total-elliptical"
       "day-0 day-1 day-2 day-3 day-4 day-5 day-6"
       / 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
   }
@@ -86,15 +87,15 @@ div.week {
 @media (max-width: 600px) {
   div.week {
     grid-template:
-      "when total-distance total-time"
-      "total-biking total-walking total-elliptical"
-      "day-6 day-6 day-6"
-      "day-5 day-5 day-5"
-      "day-4 day-4 day-4"
-      "day-3 day-3 day-3"
-      "day-2 day-2 day-2"
-      "day-1 day-1 day-1"
-      "day-0 day-0 day-0";
+      "when total-distance total-time total-time"
+      "total-biking total-walking total-swimming total-elliptical"
+      "day-6 day-6 day-6 day-6"
+      "day-5 day-5 day-5 day-5"
+      "day-4 day-4 day-4 day-4"
+      "day-3 day-3 day-3 day-3"
+      "day-2 day-2 day-2 day-2"
+      "day-1 day-1 day-1 day-1"
+      "day-0 day-0 day-0 day-0";
   }
 }
 div.week time.when {
@@ -120,6 +121,14 @@ div.week p.total-walking {
 }
 div.week p.total-walking::before {
   content: "🚶 ";
+}
+div.week p.total-swimming {
+  grid-area: total-swimming;
+  margin: auto 0;
+  font-size: 0.8em;
+}
+div.week p.total-swimming::before {
+  content: "🏊 ";
 }
 div.week p.total-elliptical {
   grid-area: total-elliptical;
