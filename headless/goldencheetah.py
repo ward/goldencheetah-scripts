@@ -57,6 +57,12 @@ class Activity:
                 keyword = keyword.strip()
                 if keyword != "":
                     self.keywords.append(keyword)
+                if keyword.startswith("datetime-"):
+                    # Magic keyword overrides datetime property
+                    try:
+                        self.date = datetime.datetime.strptime(keyword[9:], "%Y%m%dT%H%M%S")
+                    except ValueError:
+                        print("Failed to parse magic keyword 'datetime-YYYYMMDDTHHMMSS'")
         except KeyError:
             pass
 

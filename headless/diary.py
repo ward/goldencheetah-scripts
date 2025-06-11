@@ -309,6 +309,17 @@ def write_css(f):
 def adjust_date_of_activity(activity: goldencheetah.Activity):
     """Mutates the date(time) of the activity based on finding a `tz:utc±N` in
     the activity's keywords."""
+    # TODO: I think GC might just be buggy too? For example:
+    # I did an elliptical in Belgium on 16 Jan 2024 at 19:36.
+    # This looks correct in the activity's file, 18:36 UTC.
+    # In the rideDB.json file the date instead says
+    # 17 Jan 2024, 0:36 UTC.
+    # Might depend on what timezone I am currently in? Either way, messy.
+    # Not sure I can find a good workaround that will work in all cases.
+    # Also note that the GC interface correctly(?) says 19:36 while I am in the US!
+    # Maybe I should try using filename instead, that seems to be localtime.
+    # Will have to find out whether that also is correct for activities done in
+    # one timezone, imported into GC in another timezone.
     for kw in activity.keywords:
         if kw.startswith("tz:utc"):
             try:
