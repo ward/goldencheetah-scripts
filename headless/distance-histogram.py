@@ -21,14 +21,7 @@ recent_longest_time_runs = list(
     filter(lambda r: r.date > one_year_ago, longest_time_runs)
 )
 
-# for run in longest_distance_runs[:10]:
-#     print(run.distance, run.date)
 
-# for run in longest_time_runs[:10]:
-#     print(goldencheetah.seconds_to_hours_minutes(run.time_moving), run.date)
-
-
-# Some copy pasting of rolling-total.py
 def create_distance_histogram(distances):
     fig, axs = plt.subplots()
     # +1 for rounding down, +1 for range
@@ -38,13 +31,25 @@ def create_distance_histogram(distances):
     axs.set_xlabel("Length of run (km)")
     axs.set_ylabel("Number of runs")
     # None makes matplotlib take its own default
-    axs.set_ylim([0.1, None])
+    axs.set_ylim([0.5, None])
     axs.minorticks_on()
 
     # Adding labels
     for i in range(len(values)):
-        axs.text(i, values[i], int(values[i]), fontsize="x-small")
+        if values[i] > 0:
+            axs.text(
+                i + 0.5, values[i], str(int(values[i])), ha="center", fontsize="x-small"
+            )
+            axs.text(
+                i + 0.5,
+                0.5,
+                str(i),
+                ha="center",
+                va="bottom",
+                fontsize="x-small",
+            )
 
+    fig.tight_layout()
     tmpfile = BytesIO()
     fig.savefig(tmpfile, format="svg")
     svg = tmpfile.getvalue().decode("utf-8")
@@ -58,7 +63,7 @@ def create_distance_histogram(distances):
 
 
 # Default is [6.4, 4.8] (width, height)
-plt.rcParams["figure.figsize"] = [10, 5]
+plt.rcParams["figure.figsize"] = [12, 5]
 
 
 distance_svg = create_distance_histogram(
@@ -69,7 +74,13 @@ distance_svg = create_distance_histogram(
 def make_table(runs):
     def run_to_row(run):
         hours, minutes = goldencheetah.seconds_to_hours_minutes(run.time_moving)
-        return "<tr><td>{}</td><td>{:.3f}</td><td>{}:{:02d}</td></tr>".format(
+        return """
+            <tr>
+                <td>{}</td>
+                <td style="text-align:right;">{:.3f}</td>
+                <td style="text-align:right;">{}:{:02d}</td>
+            </tr>
+        """.format(
             run.date, run.distance, hours, minutes
         )
 

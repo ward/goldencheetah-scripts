@@ -268,6 +268,8 @@ def create_svg(cumul_per_day, days):
     # plt.xticks(rotation=45)
     # ax.minorticks_on()
 
+    fig.tight_layout()
+
     tmpfile = BytesIO()
     fig.savefig(tmpfile, format="svg")
     svg = tmpfile.getvalue().decode("utf-8")
@@ -282,7 +284,7 @@ def create_svg(cumul_per_day, days):
 
 # Change the plot sizes
 # Default is [6.4, 4.8] (width, height)
-plt.rcParams["figure.figsize"] = [10, 5]
+plt.rcParams["figure.figsize"] = [12, 8]
 
 
 def html_css():
