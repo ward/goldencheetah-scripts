@@ -18,6 +18,9 @@ def parse_ridedb():
 
 
 class Activity:
+    distance: float
+    """Distance of the activity in kilometer. 0 if no distance metric found"""
+
     def __init__(self, ridedb_entry):
         """Parse from a ridedb entry"""
         # This time seems to be UTC... so that is annoying. Going to start to
@@ -31,7 +34,7 @@ class Activity:
         try:
             self.distance = float(ridedb_entry["METRICS"]["total_distance"])
         except KeyError:
-            self.distance = 0
+            self.distance = float(0)
         self.time_elapsed = ridedb_entry["METRICS"]["workout_time"]
         # Assume if recording, we're moving. GC also has time_riding.
         try:

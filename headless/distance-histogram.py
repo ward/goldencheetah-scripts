@@ -100,6 +100,31 @@ def make_table(runs):
     return table
 
 
+def h_index(sorted_runs: list[goldencheetah.Activity]):
+    """
+    Sort of h-index idea from academia. Basically, find the distance n such
+    that you have at least n runs that are that distance or longer.
+
+    Expects given runs to be sorted from longest to shortest distance.
+    """
+    total = 0
+    count_at_current_distance = 0
+    curr_distance = -1
+    for run in sorted_runs:
+        d = int(run.distance)
+        total += 1
+        if curr_distance == d:
+            count_at_current_distance += 1
+        else:
+            count_at_current_distance = 1
+            curr_distance = d
+        if total >= d:
+            return d, total - count_at_current_distance
+    return 0, total - count_at_current_distance
+
+
+h_idx_dist, total_at_h_idx_up = h_index(longest_distance_runs)
+
 now = datetime.date.today()
 html = (
     "<!DOCTYPE html>"
@@ -112,6 +137,9 @@ html = (
     + make_table(recent_longest_distance_runs[0:10])
     + "<p>Recent longest time</p>"
     + make_table(recent_longest_time_runs[0:10])
+    + "<p>Running distance h-index: {} km ({} over {} km for next level).</p>".format(
+        h_idx_dist, (h_idx_dist + 1 - total_at_h_idx_up), h_idx_dist + 1
+    )
     + "<footer><p>Generated on {}.</p></footer>".format(now)
     + "</body></html>"
 )
