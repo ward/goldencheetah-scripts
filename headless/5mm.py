@@ -115,33 +115,44 @@ class GoalProgress:
 # Get runs
 runs = goldencheetah.get_all_activities(sport="Run")
 
+
+def count_year_progress(year: int, runs: list):
+    start_year = datetime.date(year=year, month=1, day=1)
+    end_year = datetime.date(year=year, month=12, day=31)
+    years_days = goldencheetah.days_range(start_year, end_year)
+
+    # Set 0 distance on every day, creates the keys in dict
+    distance_per_day: dict[datetime.date, float] = {}
+    for day in years_days:
+        distance_per_day[day] = 0
+
+    # Sum all relevant distances
+    for run in runs:
+        day = run.date.date()
+        if day in distance_per_day:
+            distance_per_day[day] += run.distance
+
+    # Count the cumul. Set None once past today (so it won't get plotted).
+    cumul_per_day: dict[datetime.date, float | None] = {}
+    current_sum = 0
+    today = datetime.date.today()
+    for day in years_days:
+        if day > today:
+            cumul_per_day[day] = None
+            continue
+        current_sum += distance_per_day[day]
+        cumul_per_day[day] = current_sum
+
+    return cumul_per_day
+
+
 # Generate days for current year
 current_year = datetime.datetime.now().year
 start_year = datetime.date(year=current_year, month=1, day=1)
 end_year = datetime.date(year=current_year, month=12, day=31)
 years_days = goldencheetah.days_range(start_year, end_year)
 
-# Set 0 distance on every day, creates the keys in dict
-distance_per_day: dict[datetime.date, float] = {}
-for day in years_days:
-    distance_per_day[day] = 0
-
-# Sum all relevant distances
-for run in runs:
-    day = run.date.date()
-    if day in distance_per_day:
-        distance_per_day[day] += run.distance
-
-# Count the cumul. Set None once past today (so it won't get plotted).
-cumul_per_day: dict[datetime.date, float | None] = {}
-current_sum = 0
-today = datetime.date.today()
-for day in years_days:
-    if day > today:
-        cumul_per_day[day] = None
-        continue
-    current_sum += distance_per_day[day]
-    cumul_per_day[day] = current_sum
+cumul_per_day = count_year_progress(current_year, runs)
 
 
 def create_goal_values(goal, days):
@@ -211,15 +222,43 @@ def create_goals_table(cumul_per_day, goals: list[int], days):
 
 def create_svg(cumul_per_day, days):
     fig, ax = plt.subplots()
-    ax.plot(days, [cumul_per_day[day] for day in days], label="Distance run")
+
+    # Straight lines towards goal distance
     for goal_distance in GOAL_DISTANCES:
         ax.plot(
             days,
             create_goal_values(goal_distance, days),
             "--",
-            color="grey",
+            color="lightgrey",
             label=goal_distance,
         )
+
+    # Previous years
+    # TODO: Derive range from oldest run
+    current_year = datetime.datetime.now().year
+    previous_years = list(range(2014, current_year))
+    # Make previous two years fatter
+    widths = {y: 1 for y in previous_years}
+    widths[current_year - 1] = 3
+    widths[current_year - 2] = 2
+    for year in previous_years:
+        # Beware, runs is global
+        cumul_for_2024 = count_year_progress(year, runs)
+        ax.plot(
+            days,
+            [cumul_for_2024[day.replace(year=year)] for day in days],
+            label=year,
+            linewidth=widths[year],
+        )
+
+    # Current year
+    ax.plot(
+        days,
+        [cumul_per_day[day] for day in days],
+        linewidth=5,
+        label="Distance run",
+    )
+
     ax.grid(axis="y")
     ax.legend()
     ax.set_xlabel("Date")
