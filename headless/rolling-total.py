@@ -10,7 +10,7 @@ DAYS = [7, 28, 84, 365]
 OUTPUT_FILE = "./output/rolling-total.html"
 
 # Matplotlib settings
-plt.rcParams["figure.figsize"] = [10, 5]
+plt.rcParams["figure.figsize"] = [14, 5]
 
 
 def days_range(start_day: datetime.date, end_day: datetime.date) -> list[datetime.date]:
@@ -48,14 +48,14 @@ def calculate_rolling_total(
 
 def get_rolling_svg(
     rolling: dict[datetime.date, float],
-    days_for_analysis: list[datetime.date],
+    days_to_render: list[datetime.date],
     window_size: int,
 ) -> str:
     """
     Creates SVG showing the given rolling total
     """
     fig, ax = plt.subplots()
-    ax.plot(days_for_analysis, [rolling[d] for d in days_for_analysis])
+    ax.plot(days_to_render, [rolling[d] for d in days_to_render])
     ax.set_xlabel("Date")
     ax.set_ylabel("Distance (km)")
     ax.set_title("Rolling {} Day Total".format(window_size))
@@ -86,21 +86,30 @@ def get_rolling_svg(
 
 def main():
     distance_per_day = goldencheetah.get_distance_per_day(sport="Run")
-
+    all_days = sorted(distance_per_day.keys())
     now = datetime.date.today()
     if distance_per_day[now] == 0:
         # In case we are generating prior to today's run, pretend it is yesterday
-        # still. Reason is otherwise you get a dip at the end of the graph for no
-        # good reason.
+        # for presentation purposes. Reason is otherwise you get a dip at the
+        # end of the graph for no good reason.
+        all_days.pop()
+        # Used in "generated on" text
         now = now - datetime.timedelta(days=1)
-    fivehundred_days_ago = now - datetime.timedelta(days=500)
-    days_for_analysis = days_range(fivehundred_days_ago, now)
 
     # Calculate rolling totals, generate SVGs
     svgs = []
+    rollings = {
+        window_size: calculate_rolling_total(window_size, distance_per_day)
+        for window_size in DAYS
+    }
+    # Render last 500 days
     for window_size in DAYS:
-        rolling_per_day = calculate_rolling_total(window_size, distance_per_day)
-        svg = get_rolling_svg(rolling_per_day, days_for_analysis, window_size)
+        svg = get_rolling_svg(rollings[window_size], all_days[-500:], window_size)
+        svgs.append(svg)
+    svgs.append("<hr />")
+    # Render all time
+    for window_size in [84, 365]:
+        svg = get_rolling_svg(rollings[window_size], all_days, window_size)
         svgs.append(svg)
 
     html = (
