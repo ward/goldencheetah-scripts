@@ -37,13 +37,11 @@ def calculate_rolling_total(
         dist_per_day: number of km ran for every given day
     """
     rolling_per_day: dict[datetime.date, float] = {}
-    # TODO: I should be using sliding window here instead of loop in loop
+    total = 0
     for d in dist_per_day.keys():
-        old_day = d - datetime.timedelta(days=window_size - 1)
-        range_of_interest = days_range(old_day, d)
-        total = 0
-        for interesting_day in range_of_interest:
-            total += dist_per_day.get(interesting_day, 0)
+        old_day = d - datetime.timedelta(days=window_size)
+        total += dist_per_day.get(d, 0)
+        total -= dist_per_day.get(old_day, 0)
         rolling_per_day[d] = total
     return rolling_per_day
 
