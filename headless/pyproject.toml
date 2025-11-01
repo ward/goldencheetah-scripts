@@ -12,4 +12,5 @@ dependencies = [
 dev = [
     "black>=24.10.0",
     "pyright>=1.1.392.post0",
+    "ruff>=0.13.1",
 ]
