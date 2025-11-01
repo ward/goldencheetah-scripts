@@ -275,10 +275,28 @@ def create_svg(cumul_per_day, days):
 
 
 def html_css():
+    """Read CSS file and return it wrapped in a style tag."""
     with open(CSS_FILE, "r") as css:
         contents = css.read()
-        css = '<style type="text/css">' + contents + "</style>"
-        return css
+        return '<style type="text/css">' + contents + "</style>"
+
+
+def build_html_document(cumul_per_day, years_days):
+    """Build the complete HTML document with chart and table."""
+    now = datetime.date.today()
+    html = (
+        "<!DOCTYPE html>"
+        + "<html>"
+        + '<head><meta charset="utf-8" />'
+        + html_css()
+        + "<title>5 MEGA METER</title>"
+        + "</head><body>"
+        + create_svg(cumul_per_day, years_days)
+        + create_goals_table(cumul_per_day, GOAL_DISTANCES, years_days)
+        + "<footer><p>Generated on {}.</p></footer>".format(now)
+        + "</body></html>"
+    )
+    return html
 
 
 def main():
@@ -295,19 +313,7 @@ def main():
     cumul_per_day = count_year_progress(current_year, runs)
 
     # Generate HTML
-    now = datetime.date.today()
-    html = (
-        "<!DOCTYPE html>"
-        + "<html>"
-        + '<head><meta charset="utf-8" />'
-        + html_css()
-        + "<title>5 MEGA METER</title>"
-        + "</head><body>"
-        + create_svg(cumul_per_day, years_days)
-        + create_goals_table(cumul_per_day, GOAL_DISTANCES, years_days)
-        + "<footer><p>Generated on {}.</p></footer>".format(now)
-        + "</body></html>"
-    )
+    html = build_html_document(cumul_per_day, years_days)
 
     # Write output file
     try:
