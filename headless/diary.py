@@ -10,6 +10,8 @@ import goldencheetah
 NEWLINE = chr(10)
 
 HARDCODED_EXCUSES = {
+    datetime.date(2025, 10, 13): "Lazy (and maybe slightly sick)",
+    datetime.date(2025, 10, 9): "Sick",
     datetime.date(2025, 8, 8): "Flying",
     datetime.date(2025, 8, 6): "No tracking, some short walks",
     datetime.date(2025, 7, 24): "Flying",
@@ -113,6 +115,7 @@ def workout_importance(workout):
         "repetition": 7,
         "speed": 7,
         "threshold": 6,
+        "m-pace": 6,
         "endurance": 5,
         "ga": 4,
         "recovery": 3,
@@ -122,6 +125,14 @@ def workout_importance(workout):
     return importance.get(workout.lower(), 0)
 
 
+def format_intervals_for_hover(intervals):
+    """Formats interval data into a readable string for hover tooltips."""
+    if not intervals:
+        return ""
+
+    return "\n".join(interval.to_hover_text() for interval in intervals)
+
+
 def write_days_activities(activities_for_the_day):
     text = ""
     for activity in activities_for_the_day:
@@ -129,8 +140,21 @@ def write_days_activities(activities_for_the_day):
             strides_text = ""
             if "strides" in activity.keywords:
                 strides_text = "<sup>st</sup>"
-            text += '<p class="activity">{:.1f}km {}{}</p>'.format(
-                activity.distance, activity.workout_code, strides_text
+
+            # Add hover info for Repetition and VO2max workouts
+            title_attr = ""
+            if (
+                activity.workout_code
+                and workout_importance(activity.workout_code.lower()) > 5
+            ):
+                intervals_text = format_intervals_for_hover(activity.intervals)
+                if intervals_text:
+                    # HTML escape the title attribute content
+                    intervals_text = intervals_text.replace('"', "&quot;")
+                    title_attr = f' title="{intervals_text}"'
+
+            text += '<p class="activity"{}>{:.1f}km {}{}</p>'.format(
+                title_attr, activity.distance, activity.workout_code, strides_text
             )
     others_sums = {}
     for activity in activities_for_the_day:

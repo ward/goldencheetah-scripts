@@ -11,10 +11,11 @@ index.html: index.py $(output_files)
 rideDB.pickle: rideDB.json
 	python ridedb_to_pickle.py
 
-rideDB.json: ~/.goldencheetah/Ward\ Muylaert/cache/rideDB.json
-	cp ~/.goldencheetah/Ward\ Muylaert/cache/rideDB.json .
+# $< is the first prerequisite
+rideDB.json: ~/Library/GoldenCheetah/Ward\ Muylaert/cache/rideDB.json
+	cp "$<" .
 
-output/%.html: %.py rideDB.pickle
+output/%.html: %.py rideDB.pickle goldencheetah.py
 	python $<
 
 # This ensures that if a css file with same name as python file exists, the

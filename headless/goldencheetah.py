@@ -3,7 +3,6 @@
 import math
 import json
 import datetime
-import os
 import pickle
 
 RIDEDB_FILE = "./rideDB.json"
@@ -63,16 +62,66 @@ class Activity:
                 if keyword.startswith("datetime-"):
                     # Magic keyword overrides datetime property
                     try:
-                        self.date = datetime.datetime.strptime(keyword[9:], "%Y%m%dT%H%M%S")
+                        self.date = datetime.datetime.strptime(
+                            keyword[9:], "%Y%m%dT%H%M%S"
+                        )
                     except ValueError:
-                        print("Failed to parse magic keyword 'datetime-YYYYMMDDTHHMMSS'")
+                        print(
+                            "Failed to parse magic keyword 'datetime-YYYYMMDDTHHMMSS'"
+                        )
         except KeyError:
             pass
+
+        # Laps / intervals. Skipping the "entire activity" one. Keeping same
+        # order as given.
+        self.intervals = []
+        for interval in ridedb_entry.get("INTERVALS", []):
+            try:
+                i = ActivityInterval(interval)
+                if i.name != "Entire Activity":
+                    self.intervals.append(i)
+            except:
+                pass
 
     def __str__(self):
         return "{} on {}: {} km in {} s".format(
             self.sport, self.date, self.distance, self.time_moving
         )
+
+
+class ActivityInterval:
+    def __init__(self, intervaldict: dict):
+        self._startSeconds = int(intervaldict["start"])
+        self._stopSeconds = int(intervaldict["stop"])
+        self._startKm = float(intervaldict["startKM"])
+        self._stopKm = float(intervaldict["stopKM"])
+        self.name = intervaldict["name"].strip()
+
+    def distance(self):
+        """Kilometer"""
+        return round(self._stopKm - self._startKm, 1)
+
+    def time(self):
+        """Seconds"""
+        return self._stopSeconds - self._startSeconds
+
+    def pace(self) -> int:
+        """Seconds per km"""
+        d = self._stopKm - self._startKm
+        if d == 0:
+            return 0
+        else:
+            t = self._stopSeconds - self._startSeconds
+            return int(t / d)
+
+    def to_hover_text(self):
+        """Format interval as text for hover tooltips."""
+        t = self.time()
+        if t > 0:
+            m, s = math.floor(t / 60), t % 60
+            return f"{self.name}: {self.distance():.1f}km in {m}:{s:02d}"
+        else:
+            return f"{self.name}: {self.distance():.1f}km"
 
 
 def ridedb_to_pickle():
@@ -129,7 +178,9 @@ def seconds_to_hours_minutes(seconds):
     return (hours, minutes)
 
 
-def days_range_normalised_to_week(start_day: datetime.date, end_day: datetime.date) -> list[datetime.date]:
+def days_range_normalised_to_week(
+    start_day: datetime.date, end_day: datetime.date
+) -> list[datetime.date]:
     """Create a list with every day from Monday of the week of start_day to
     Sunday of the week of the end_day (inclusive)."""
     # Set start_day to the Monday (.weekday() is 0 based)
