@@ -1,22 +1,36 @@
-import goldencheetah
-
-import os
 import datetime
-import matplotlib.pyplot as plt
+import os
 from io import BytesIO
 
+import matplotlib.pyplot as plt
+
+import goldencheetah
+
 DAYS = [7, 28, 84, 365]
+OUTPUT_FILE = "./output/rolling-total.html"
+
+# Matplotlib settings
+plt.rcParams["figure.figsize"] = [10, 5]
 
 
-def days_range(start_day, end_day):
+def days_range(start_day: datetime.date, end_day: datetime.date) -> list[datetime.date]:
+    """
+    Returns a list of dates from the `start_day` till the `end_day`
+    (inclusive).
+    """
     return [
         start_day + datetime.timedelta(days=days)
         for days in range((end_day - start_day).days + 1)
     ]
 
 
-def calculate_rolling_total(number_of_days, first_day, per_day):
-    rolling_per_day = {}
+def calculate_rolling_total(
+    number_of_days: int,
+    first_day: datetime.date,
+    per_day: dict[datetime.date, float],
+    days_for_analysis: list[datetime.date],
+) -> dict[datetime.date, float]:
+    rolling_per_day: dict[datetime.date, float] = {}
     for d in days_for_analysis:
         old_day = max(d - datetime.timedelta(days=number_of_days - 1), first_day)
         range_of_interest = days_range(old_day, d)
@@ -27,7 +41,14 @@ def calculate_rolling_total(number_of_days, first_day, per_day):
     return rolling_per_day
 
 
-def get_rolling_svg(rolling, day_count):
+def get_rolling_svg(
+    rolling: dict[datetime.date, float],
+    days_for_analysis: list[datetime.date],
+    day_count: int,
+) -> str:
+    """
+    Creates SVG showing the given rolling total
+    """
     fig, ax = plt.subplots()
     ax.plot(days_for_analysis, [rolling[d] for d in days_for_analysis])
     ax.set_xlabel("Date")
@@ -58,44 +79,43 @@ def get_rolling_svg(rolling, day_count):
     return svg[index_of_greater_than:]
 
 
-distance_per_day = goldencheetah.get_distance_per_day(sport="Run")
-first_day = sorted(distance_per_day.keys())[0]
+def main():
+    distance_per_day = goldencheetah.get_distance_per_day(sport="Run")
+    first_day = sorted(distance_per_day.keys())[0]
 
-now = datetime.date.today()
-if distance_per_day[now] == 0:
-    # In case we are generating prior to today's run, pretend it is yesterday
-    # still. Reason is otherwise you get a dip at the end of the graph for no
-    # good reason.
-    now = now - datetime.timedelta(days=1)
-six_months_ago = now - datetime.timedelta(days=500)
-days_for_analysis = days_range(six_months_ago, now)
-rolling_per_day = map(
-    lambda number_of_days: calculate_rolling_total(
-        number_of_days, first_day, distance_per_day
-    ),
-    DAYS,
-)
+    now = datetime.date.today()
+    if distance_per_day[now] == 0:
+        # In case we are generating prior to today's run, pretend it is yesterday
+        # still. Reason is otherwise you get a dip at the end of the graph for no
+        # good reason.
+        now = now - datetime.timedelta(days=1)
+    fivehundred_days_ago = now - datetime.timedelta(days=500)
+    days_for_analysis = days_range(fivehundred_days_ago, now)
 
-# Default is [6.4, 4.8] (width, height)
-plt.rcParams["figure.figsize"] = [10, 5]
+    # Calculate rolling totals, generate SVGs
+    svgs = []
+    for rolling_total_length in DAYS:
+        rolling_per_day = calculate_rolling_total(
+            rolling_total_length, first_day, distance_per_day, days_for_analysis
+        )
+        svg = get_rolling_svg(rolling_per_day, days_for_analysis, rolling_total_length)
+        svgs.append(svg)
 
-svgs = "\n".join(map(get_rolling_svg, rolling_per_day, DAYS))
-html = (
-    "<!DOCTYPE html>"
-    + "<html>"
-    + '<head><meta charset="utf-8" />'
-    + "<title>Rolling Total</title>"
-    + "</head><body>"
-    + svgs
-    + "<footer><p>Generated on {}.</p></footer>".format(now)
-    + "</body></html>"
-)
+    html = (
+        "<!DOCTYPE html>"
+        + "<html>"
+        + '<head><meta charset="utf-8" />'
+        + "<title>Rolling Total</title>"
+        + "</head><body>"
+        + "\n".join(svgs)
+        + "<footer><p>Generated on {}.</p></footer>".format(now)
+        + "</body></html>"
+    )
 
-try:
-    os.mkdir("./output")
-except FileExistsError:
-    pass
+    os.makedirs("./output", exist_ok=True)
+    with open(OUTPUT_FILE, "w") as f:
+        f.write(html)
 
-NAME = "./output/rolling-total.html"
-with open(NAME, "w") as f:
-    f.write(html)
+
+if __name__ == "__main__":
+    main()
