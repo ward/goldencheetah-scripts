@@ -11,6 +11,7 @@ OUTPUT_FILE = "./output/5mm.html"
 CSS_FILE = "5mm.css"
 
 # Configure matplotlib
+# Default is [6.4, 4.8] (width, height)
 plt.rcParams["figure.figsize"] = [12, 8]
 
 
@@ -212,7 +213,8 @@ def create_goals_table(cumul_per_day, goals: list[int], days):
     return result
 
 
-def create_svg(cumul_per_day, days):
+def create_svg(cumul_per_day, days, runs):
+    """Create an SVG chart showing yearly running progress."""
     fig, ax = plt.subplots()
 
     # Straight lines towards goal distance
@@ -234,11 +236,10 @@ def create_svg(cumul_per_day, days):
     widths[current_year - 1] = 3
     widths[current_year - 2] = 2
     for year in previous_years:
-        # Beware, runs is global
-        cumul_for_2024 = count_year_progress(year, runs)
+        cumul_for_year = count_year_progress(year, runs)
         ax.plot(
             days,
-            [cumul_for_2024[day.replace(year=year)] for day in days],
+            [cumul_for_year[day.replace(year=year)] for day in days],
             label=year,
             linewidth=widths[year],
         )
@@ -281,7 +282,7 @@ def html_css():
         return '<style type="text/css">' + contents + "</style>"
 
 
-def build_html_document(cumul_per_day, years_days):
+def build_html_document(cumul_per_day, years_days, runs):
     """Build the complete HTML document with chart and table."""
     now = datetime.date.today()
     html = (
@@ -291,7 +292,7 @@ def build_html_document(cumul_per_day, years_days):
         + html_css()
         + "<title>5 MEGA METER</title>"
         + "</head><body>"
-        + create_svg(cumul_per_day, years_days)
+        + create_svg(cumul_per_day, years_days, runs)
         + create_goals_table(cumul_per_day, GOAL_DISTANCES, years_days)
         + "<footer><p>Generated on {}.</p></footer>".format(now)
         + "</body></html>"
@@ -313,14 +314,10 @@ def main():
     cumul_per_day = count_year_progress(current_year, runs)
 
     # Generate HTML
-    html = build_html_document(cumul_per_day, years_days)
+    html = build_html_document(cumul_per_day, years_days, runs)
 
     # Write output file
-    try:
-        os.mkdir(OUTPUT_DIR)
-    except FileExistsError:
-        pass
-
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
     with open(OUTPUT_FILE, "w") as f:
         f.write(html)
 
