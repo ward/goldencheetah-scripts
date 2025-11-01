@@ -1,12 +1,17 @@
-import math
 import datetime
 import os
 from io import BytesIO
 import matplotlib.pyplot as plt
 import goldencheetah
 
-# How much we are hoping to hit in a year
+# Constants
 GOAL_DISTANCES = [5000, 4000, 3000, 2500, 2000, 1000]
+OUTPUT_DIR = "./output"
+OUTPUT_FILE = "./output/5mm.html"
+CSS_FILE = "5mm.css"
+
+# Configure matplotlib
+plt.rcParams["figure.figsize"] = [12, 8]
 
 
 class GoalProgress:
@@ -112,10 +117,6 @@ class GoalProgress:
         return row
 
 
-# Get runs
-runs = goldencheetah.get_all_activities(sport="Run")
-
-
 def count_year_progress(year: int, runs: list):
     start_year = datetime.date(year=year, month=1, day=1)
     end_year = datetime.date(year=year, month=12, day=31)
@@ -144,15 +145,6 @@ def count_year_progress(year: int, runs: list):
         cumul_per_day[day] = current_sum
 
     return cumul_per_day
-
-
-# Generate days for current year
-current_year = datetime.datetime.now().year
-start_year = datetime.date(year=current_year, month=1, day=1)
-end_year = datetime.date(year=current_year, month=12, day=31)
-years_days = goldencheetah.days_range(start_year, end_year)
-
-cumul_per_day = count_year_progress(current_year, runs)
 
 
 def create_goal_values(goal, days):
@@ -282,37 +274,50 @@ def create_svg(cumul_per_day, days):
     return svg[index_of_greater_than:]
 
 
-# Change the plot sizes
-# Default is [6.4, 4.8] (width, height)
-plt.rcParams["figure.figsize"] = [12, 8]
-
-
 def html_css():
-    with open("5mm.css", "r") as css:
+    with open(CSS_FILE, "r") as css:
         contents = css.read()
         css = '<style type="text/css">' + contents + "</style>"
         return css
 
 
-now = datetime.date.today()
-html = (
-    "<!DOCTYPE html>"
-    + "<html>"
-    + '<head><meta charset="utf-8" />'
-    + html_css()
-    + "<title>5 MEGA METER</title>"
-    + "</head><body>"
-    + create_svg(cumul_per_day, years_days)
-    + create_goals_table(cumul_per_day, GOAL_DISTANCES, years_days)
-    + "<footer><p>Generated on {}.</p></footer>".format(now)
-    + "</body></html>"
-)
+def main():
+    # Get all running activities
+    runs = goldencheetah.get_all_activities(sport="Run")
 
-try:
-    os.mkdir("./output")
-except FileExistsError:
-    pass
+    # Generate days for current year
+    current_year = datetime.datetime.now().year
+    start_year = datetime.date(year=current_year, month=1, day=1)
+    end_year = datetime.date(year=current_year, month=12, day=31)
+    years_days = goldencheetah.days_range(start_year, end_year)
 
-NAME = "./output/5mm.html"
-with open(NAME, "w") as f:
-    f.write(html)
+    # Calculate cumulative progress
+    cumul_per_day = count_year_progress(current_year, runs)
+
+    # Generate HTML
+    now = datetime.date.today()
+    html = (
+        "<!DOCTYPE html>"
+        + "<html>"
+        + '<head><meta charset="utf-8" />'
+        + html_css()
+        + "<title>5 MEGA METER</title>"
+        + "</head><body>"
+        + create_svg(cumul_per_day, years_days)
+        + create_goals_table(cumul_per_day, GOAL_DISTANCES, years_days)
+        + "<footer><p>Generated on {}.</p></footer>".format(now)
+        + "</body></html>"
+    )
+
+    # Write output file
+    try:
+        os.mkdir(OUTPUT_DIR)
+    except FileExistsError:
+        pass
+
+    with open(OUTPUT_FILE, "w") as f:
+        f.write(html)
+
+
+if __name__ == "__main__":
+    main()
