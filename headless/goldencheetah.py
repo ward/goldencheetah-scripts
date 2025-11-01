@@ -157,7 +157,11 @@ def days_range(start_day, end_day):
     ]
 
 
-def get_distance_per_day(sport="Run"):
+def get_distance_per_day(sport="Run") -> dict[datetime.date, float]:
+    """
+    Returns how much distance was covered for given sport on every day from the
+    oldest activity in that sport to today.
+    """
     activities = get_all_activities(sport)
     start_day = activities[0].date.date()
     end_day = datetime.date.today()

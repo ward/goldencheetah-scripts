@@ -25,18 +25,25 @@ def days_range(start_day: datetime.date, end_day: datetime.date) -> list[datetim
 
 
 def calculate_rolling_total(
-    number_of_days: int,
-    first_day: datetime.date,
-    per_day: dict[datetime.date, float],
-    days_for_analysis: list[datetime.date],
+    window_size: int,
+    dist_per_day: dict[datetime.date, float],
 ) -> dict[datetime.date, float]:
+    """
+    Calculates rolling total combining a certain number of days. Rolling total
+    is calculated for every day in dist_per_day
+
+    Params:
+        window_size: number of days to use for rolling total
+        dist_per_day: number of km ran for every given day
+    """
     rolling_per_day: dict[datetime.date, float] = {}
-    for d in days_for_analysis:
-        old_day = max(d - datetime.timedelta(days=number_of_days - 1), first_day)
+    # TODO: I should be using sliding window here instead of loop in loop
+    for d in dist_per_day.keys():
+        old_day = d - datetime.timedelta(days=window_size - 1)
         range_of_interest = days_range(old_day, d)
         total = 0
         for interesting_day in range_of_interest:
-            total += per_day[interesting_day]
+            total += dist_per_day.get(interesting_day, 0)
         rolling_per_day[d] = total
     return rolling_per_day
 
@@ -44,7 +51,7 @@ def calculate_rolling_total(
 def get_rolling_svg(
     rolling: dict[datetime.date, float],
     days_for_analysis: list[datetime.date],
-    day_count: int,
+    window_size: int,
 ) -> str:
     """
     Creates SVG showing the given rolling total
@@ -53,17 +60,17 @@ def get_rolling_svg(
     ax.plot(days_for_analysis, [rolling[d] for d in days_for_analysis])
     ax.set_xlabel("Date")
     ax.set_ylabel("Distance (km)")
-    ax.set_title("Rolling {} Day Total".format(day_count))
+    ax.set_title("Rolling {} Day Total".format(window_size))
     ax.minorticks_on()
     ax.grid(visible=True, which="both", axis="y")
     (_, y_upper) = ax.get_ylim()
     ax.set_ylim(0, y_upper)
 
     # Second y axis on the right hand side
-    if day_count != 7:
+    if window_size != 7:
         secax = ax.secondary_yaxis(
             "right",
-            functions=(lambda x: x / day_count * 7, lambda x: x / 7 * day_count),
+            functions=(lambda x: x / window_size * 7, lambda x: x / 7 * window_size),
         )
         secax.set_ylabel("eq distance per week")
 
@@ -81,7 +88,6 @@ def get_rolling_svg(
 
 def main():
     distance_per_day = goldencheetah.get_distance_per_day(sport="Run")
-    first_day = sorted(distance_per_day.keys())[0]
 
     now = datetime.date.today()
     if distance_per_day[now] == 0:
@@ -94,11 +100,9 @@ def main():
 
     # Calculate rolling totals, generate SVGs
     svgs = []
-    for rolling_total_length in DAYS:
-        rolling_per_day = calculate_rolling_total(
-            rolling_total_length, first_day, distance_per_day, days_for_analysis
-        )
-        svg = get_rolling_svg(rolling_per_day, days_for_analysis, rolling_total_length)
+    for window_size in DAYS:
+        rolling_per_day = calculate_rolling_total(window_size, distance_per_day)
+        svg = get_rolling_svg(rolling_per_day, days_for_analysis, window_size)
         svgs.append(svg)
 
     html = (
