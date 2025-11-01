@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import goldencheetah
 
 # How much we are hoping to hit in a year
-GOAL_DISTANCES = [5000, 4000, 3000, 2000, 1000]
+GOAL_DISTANCES = [5000, 4000, 3000, 2500, 2000, 1000]
 
 
 class GoalProgress:
