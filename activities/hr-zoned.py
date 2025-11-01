@@ -61,7 +61,8 @@ f = plotly.offline.plot(
             ),
         ],
         "layout": go.Layout(
-            yaxis=dict(range=[120, 190]),
+            xaxis=dict(title="seconds elapsed time"),
+            yaxis=dict(title="BPM", range=[120, 190]),
             shapes=[
                 dict(
                     type="line",
@@ -71,7 +72,7 @@ f = plotly.offline.plot(
                     yref="y",
                     y0=y,
                     y1=y,
-                    line=dict(color="#333333", dash="dash"),
+                    line=dict(color="#666666", dash="dash"),
                 )
                 for y in [144, 154, 170, 190]
             ],
