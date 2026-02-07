@@ -156,7 +156,42 @@ def create_goal_values(goal, days):
     return [per_day + per_day * i for i in range(len(days))]
 
 
-def create_goals_table(cumul_per_day, goals: list[int], days):
+def compute_goal_stats(
+    cumul_per_day: dict[datetime.date, float | None],
+    goals: list[int],
+    days: list[datetime.date],
+) -> list[tuple[GoalProgress, bool]]:
+    """Compute goal stats for each goal distance, with the 'actual' extrapolated
+    row inserted at the appropriate position."""
+    result = []
+    already_added_actual = False
+
+    for goal in goals:
+        goal_progress = GoalProgress()
+        goal_progress.calculate_goal_stats(cumul_per_day, goal, days)
+        goal_reached = goal_progress.ran_so_far >= goal
+
+        if goal_progress.current_extrapolated >= goal and not already_added_actual:
+            already_added_actual = True
+            actual = GoalProgress(actual=True)
+            # The goal distance we add here does not matter, we only care to
+            # have progress and such in it.
+            actual.calculate_goal_stats(cumul_per_day, 1, days)
+            result.append((actual, False))
+
+        result.append((goal_progress, goal_reached))
+
+    if not already_added_actual:
+        actual = GoalProgress(actual=True)
+        # The goal distance we add here does not matter, we only care to
+        # have progress and such in it.
+        actual.calculate_goal_stats(cumul_per_day, 1, days)
+        result.append((actual, False))
+
+    return result
+
+
+def create_goals_table(goal_stats: list[tuple[GoalProgress, bool]]):
     """Return a string that gets rendered as a table in HTML"""
     result = "<table>"
 
@@ -181,29 +216,8 @@ def create_goals_table(cumul_per_day, goals: list[int], days):
         "</tr>"
     )
 
-    # Individual rows per goal
-    already_added_goal = False
-    for goal in goals:
-        goal_progress = GoalProgress()
-        goal_progress.calculate_goal_stats(cumul_per_day, goal, days)
-        goal_reached = goal_progress.ran_so_far >= goal
-
-        if goal_progress.current_extrapolated >= goal and not already_added_goal:
-            already_added_goal = True
-            actual = GoalProgress(actual=True)
-            # The goal distance we add here does not matter, we only care to
-            # have progress and such in it.
-            actual.calculate_goal_stats(cumul_per_day, 1, days)
-            result += render_goal_row(actual)
-
-        result += render_goal_row(goal_progress, goal_reached)
-
-    if not already_added_goal:
-        actual = GoalProgress(actual=True)
-        # The goal distance we add here does not matter, we only care to
-        # have progress and such in it.
-        actual.calculate_goal_stats(cumul_per_day, 1, days)
-        result += render_goal_row(actual)
+    for gp, goal_reached in goal_stats:
+        result += render_goal_row(gp, goal_reached)
 
     result += "</table>"
     return result
@@ -273,7 +287,7 @@ def html_css():
         return '<style type="text/css">' + contents + "</style>"
 
 
-def build_html_document(cumul_per_day, cumul_previous, years_days):
+def build_html_document(cumul_per_day, cumul_previous, goal_stats, years_days):
     """Build the complete HTML document with chart and table."""
     now = datetime.date.today()
     html = (
@@ -284,7 +298,7 @@ def build_html_document(cumul_per_day, cumul_previous, years_days):
         + "<title>5 MEGA METER</title>"
         + "</head><body>"
         + create_svg(cumul_per_day, cumul_previous, years_days)
-        + create_goals_table(cumul_per_day, GOAL_DISTANCES, years_days)
+        + create_goals_table(goal_stats)
         + "<footer><p>Generated on {}.</p></footer>".format(now)
         + "</body></html>"
     )
@@ -311,8 +325,11 @@ def main():
         for year in range(first_year, current_year)
     }
 
+    # Compute goal stats
+    goal_stats = compute_goal_stats(cumul_per_day, GOAL_DISTANCES, years_days)
+
     # Generate HTML
-    html = build_html_document(cumul_per_day, cumul_previous, years_days)
+    html = build_html_document(cumul_per_day, cumul_previous, goal_stats, years_days)
 
     # Write output file
     os.makedirs(OUTPUT_DIR, exist_ok=True)
