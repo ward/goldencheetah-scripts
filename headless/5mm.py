@@ -36,7 +36,7 @@ class GoalProgress:
     current_extrapolated: float
     """Takes distance run this year to date and extrapolates to the entire year"""
 
-    _avg_so_far_per_day: float
+    avg_so_far_per_day: float
 
     def __init__(self, actual: bool = False):
         self.actual = actual
@@ -65,57 +65,57 @@ class GoalProgress:
 
         days_passed = (today - days[0]).days + 1
         total_days = (days[-1] - days[0]).days + 1
-        self._avg_so_far_per_day = self.ran_so_far / days_passed
-        self.current_extrapolated = self._avg_so_far_per_day * total_days
+        self.avg_so_far_per_day = self.ran_so_far / days_passed
+        self.current_extrapolated = self.avg_so_far_per_day * total_days
 
-    def to_html_row(self, goal_reached: bool = False) -> str:
-        if self.actual:
-            return (
-                '<tr class="actual" title="This row is current progress extrapolated">'
-                "<td>{:,.1f}</td>"
-                "<td>{:,.1f}</td>"
-                "<td>{:,.1f}</td>"
-                "<td>{:,.1f}</td>"
-                "<td></td>"
-                "<td></td>"
-                "<td></td>"
-                "<td></td>"
-                "</tr>"
-            ).format(
-                self.current_extrapolated,
-                self._avg_so_far_per_day,
-                7 * self._avg_so_far_per_day,
-                self.ran_so_far,
-            )
-
-        row = (
-            "<tr>"
+def render_goal_row(gp: GoalProgress, goal_reached: bool = False) -> str:
+    if gp.actual:
+        return (
+            '<tr class="actual" title="This row is current progress extrapolated">'
             "<td>{:,.1f}</td>"
             "<td>{:,.1f}</td>"
             "<td>{:,.1f}</td>"
             "<td>{:,.1f}</td>"
-            "<td>{:,.1f}</td>"
+            "<td></td>"
+            "<td></td>"
+            "<td></td>"
+            "<td></td>"
+            "</tr>"
+        ).format(
+            gp.current_extrapolated,
+            gp.avg_so_far_per_day,
+            7 * gp.avg_so_far_per_day,
+            gp.ran_so_far,
         )
+
+    row = (
+        "<tr>"
+        "<td>{:,.1f}</td>"
+        "<td>{:,.1f}</td>"
+        "<td>{:,.1f}</td>"
+        "<td>{:,.1f}</td>"
+        "<td>{:,.1f}</td>"
+    )
+    row = row.format(
+        gp.goal,
+        gp.per_day,
+        7 * gp.per_day,
+        gp.should_have_ran,
+        gp.ran_so_far - gp.should_have_ran,
+    )
+
+    if goal_reached:
+        row += "<td>✓</td>" "<td>✓</td>" "<td>✓</td>"
+    else:
+        row += "<td>{:,.1f}</td>" "<td>{:,.1f}</td>" "<td>{:,.1f}</td>"
         row = row.format(
-            self.goal,
-            self.per_day,
-            7 * self.per_day,
-            self.should_have_ran,
-            self.ran_so_far - self.should_have_ran,
+            gp.goal - gp.ran_so_far,
+            gp.per_day_from_now_on,
+            7 * gp.per_day_from_now_on,
         )
+    row += "</tr>"
 
-        if goal_reached:
-            row += "<td>✓</td>" "<td>✓</td>" "<td>✓</td>"
-        else:
-            row += "<td>{:,.1f}</td>" "<td>{:,.1f}</td>" "<td>{:,.1f}</td>"
-            row = row.format(
-                self.goal - self.ran_so_far,
-                self.per_day_from_now_on,
-                7 * self.per_day_from_now_on,
-            )
-        row += "</tr>"
-
-        return row
+    return row
 
 
 def count_year_progress(year: int, runs: list):
@@ -194,20 +194,16 @@ def create_goals_table(cumul_per_day, goals: list[int], days):
             # The goal distance we add here does not matter, we only care to
             # have progress and such in it.
             actual.calculate_goal_stats(cumul_per_day, 1, days)
-            row = actual.to_html_row()
-            result += row
+            result += render_goal_row(actual)
 
-        row = goal_progress.to_html_row(goal_reached)
-
-        result += row
+        result += render_goal_row(goal_progress, goal_reached)
 
     if not already_added_goal:
         actual = GoalProgress(actual=True)
         # The goal distance we add here does not matter, we only care to
         # have progress and such in it.
         actual.calculate_goal_stats(cumul_per_day, 1, days)
-        row = actual.to_html_row()
-        result += row
+        result += render_goal_row(actual)
 
     result += "</table>"
     return result
