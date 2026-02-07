@@ -213,7 +213,7 @@ def create_goals_table(cumul_per_day, goals: list[int], days):
     return result
 
 
-def create_svg(cumul_per_day, days, runs):
+def create_svg(cumul_per_day, cumul_previous, days):
     """Create an SVG chart showing yearly running progress."""
     fig, ax = plt.subplots()
 
@@ -228,20 +228,15 @@ def create_svg(cumul_per_day, days, runs):
         )
 
     # Previous years
-    # TODO: Derive range from oldest run
     current_year = datetime.datetime.now().year
-    previous_years = list(range(2014, current_year))
-    # Make previous two years fatter
-    widths = {y: 1 for y in previous_years}
-    widths[current_year - 1] = 3
-    widths[current_year - 2] = 2
-    for year in previous_years:
-        cumul_for_year = count_year_progress(year, runs)
+    for year, cumul_for_year in cumul_previous.items():
+        # Make the two most recent years fatter
+        width = {1: 3, 2: 2}.get(current_year - year, 1)
         ax.plot(
             days,
             [cumul_for_year[day.replace(year=year)] for day in days],
             label=year,
-            linewidth=widths[year],
+            linewidth=width,
         )
 
     # Current year
@@ -282,7 +277,7 @@ def html_css():
         return '<style type="text/css">' + contents + "</style>"
 
 
-def build_html_document(cumul_per_day, years_days, runs):
+def build_html_document(cumul_per_day, cumul_previous, years_days):
     """Build the complete HTML document with chart and table."""
     now = datetime.date.today()
     html = (
@@ -292,7 +287,7 @@ def build_html_document(cumul_per_day, years_days, runs):
         + html_css()
         + "<title>5 MEGA METER</title>"
         + "</head><body>"
-        + create_svg(cumul_per_day, years_days, runs)
+        + create_svg(cumul_per_day, cumul_previous, years_days)
         + create_goals_table(cumul_per_day, GOAL_DISTANCES, years_days)
         + "<footer><p>Generated on {}.</p></footer>".format(now)
         + "</body></html>"
@@ -313,8 +308,15 @@ def main():
     # Calculate cumulative progress
     cumul_per_day = count_year_progress(current_year, runs)
 
+    # Calculate previous years' cumulative progress
+    first_year = min(r.date.year for r in runs)
+    cumul_previous = {
+        year: count_year_progress(year, runs)
+        for year in range(first_year, current_year)
+    }
+
     # Generate HTML
-    html = build_html_document(cumul_per_day, years_days, runs)
+    html = build_html_document(cumul_per_day, cumul_previous, years_days)
 
     # Write output file
     os.makedirs(OUTPUT_DIR, exist_ok=True)
