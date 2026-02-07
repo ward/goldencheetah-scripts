@@ -90,6 +90,7 @@ def create_svg(distance_per_time, timeframe):
     index_of_greater_than = svg.find(">", index_of_greater_than) + 1
     return svg[index_of_greater_than:]
 
+
 # Change the plot sizes
 # Default is [6.4, 4.8] (width, height)
 plt.rcParams["figure.figsize"] = [10, 6]

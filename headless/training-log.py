@@ -130,8 +130,8 @@ def write_week(f, activities):
     distance, time = sum_week_distance_time(activities)
     hours, minutes = goldencheetah.seconds_to_hours_minutes(time)
     overview = overview.format(first_day, last_day, distance, hours, minutes)
-    header = '<svg height="160" width="825">' '<g class="days">'
-    footer = "</g>" "</svg>" "</div>"
+    header = '<svg height="160" width="825"><g class="days">'
+    footer = "</g></svg></div>"
     f.write(overview)
     f.write(header)
     for idx, day in enumerate(sorted(activities)):
@@ -143,10 +143,7 @@ def write_training_log(f, activities):
     """Creates HTML page of a training log.
     Activities are in the format as returned by group_by_week."""
     header_a = (
-        "<!DOCTYPE html>"
-        "<html>"
-        "<head><title>Training Log</title>"
-        '<meta charset="utf-8" />'
+        '<!DOCTYPE html><html><head><title>Training Log</title><meta charset="utf-8" />'
     )
     header_b = NEWLINE.join(
         [
@@ -157,7 +154,7 @@ def write_training_log(f, activities):
             ),
         ]
     )
-    footer = NEWLINE + "</body>" "</html>"
+    footer = NEWLINE + "</body></html>"
     f.write(header_a)
     write_css(f)
     f.write(header_b)

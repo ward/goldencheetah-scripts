@@ -72,6 +72,7 @@ class GoalProgress:
         self.avg_so_far_per_day = self.ran_so_far / days_passed
         self.current_extrapolated = self.avg_so_far_per_day * total_days
 
+
 def render_goal_row(gp: GoalProgress, goal_reached: bool = False) -> str:
     if gp.actual:
         current_year = datetime.date.today().year
@@ -80,8 +81,7 @@ def render_goal_row(gp: GoalProgress, goal_reached: bool = False) -> str:
         else:
             tr = '<tr class="year">'
         return (
-            tr
-            + "<td>{}</td>"
+            tr + "<td>{}</td>"
             "<td>{:,.1f}</td>"
             "<td>{:,.1f}</td>"
             "<td>{:,.1f}</td>"
@@ -117,9 +117,9 @@ def render_goal_row(gp: GoalProgress, goal_reached: bool = False) -> str:
     )
 
     if goal_reached:
-        row += "<td>✓</td>" "<td>✓</td>" "<td>✓</td>"
+        row += "<td>✓</td><td>✓</td><td>✓</td>"
     else:
-        row += "<td>{:,.1f}</td>" "<td>{:,.1f}</td>" "<td>{:,.1f}</td>"
+        row += "<td>{:,.1f}</td><td>{:,.1f}</td><td>{:,.1f}</td>"
         row = row.format(
             gp.goal - gp.ran_so_far,
             gp.per_day_from_now_on,

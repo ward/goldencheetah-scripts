@@ -316,7 +316,7 @@ def write_week(f, activities):
         ell_html = ell_html.format(hours, minutes)
         overview += ell_html
     header = ""
-    footer = "" "</div>"
+    footer = "</div>"
     f.write(overview)
     f.write(header)
     for idx, day in enumerate(sorted(activities)):
@@ -343,7 +343,7 @@ def write_training_log(f, activities):
             ),
         ]
     )
-    footer = NEWLINE + "</body>" "</html>"
+    footer = NEWLINE + "</body></html>"
     f.write(header_a)
     write_css(f)
     f.write(header_b)

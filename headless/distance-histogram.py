@@ -80,9 +80,7 @@ def make_table(runs):
                 <td style="text-align:right;">{:.3f}</td>
                 <td style="text-align:right;">{}:{:02d}</td>
             </tr>
-        """.format(
-            run.date, run.distance, hours, minutes
-        )
+        """.format(run.date, run.distance, hours, minutes)
 
     table = (
         "<table>"

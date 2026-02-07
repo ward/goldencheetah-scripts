@@ -31,7 +31,7 @@ def write_index(f):
         + "</head>"
         + "<body>"
     )
-    footer = "</body>" "</html>"
+    footer = "</body></html>"
     f.write(header)
     f.write("<h1>Running Graphs</h1>")
     write_file_listing(f, get_files("./output/"))
