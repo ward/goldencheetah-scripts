@@ -18,6 +18,9 @@ plt.rcParams["figure.figsize"] = [12, 8]
 class GoalProgress:
     actual: bool
 
+    year: int | None
+    """The year this row represents, or None for goal rows"""
+
     goal: float
     """Distance to run in the current year"""
 
@@ -40,6 +43,7 @@ class GoalProgress:
 
     def __init__(self, actual: bool = False):
         self.actual = actual
+        self.year = None
 
     def calculate_goal_stats(
         self,
@@ -70,8 +74,14 @@ class GoalProgress:
 
 def render_goal_row(gp: GoalProgress, goal_reached: bool = False) -> str:
     if gp.actual:
+        current_year = datetime.date.today().year
+        if gp.year == current_year:
+            tr = '<tr class="actual" title="This row is current progress extrapolated">'
+        else:
+            tr = '<tr class="year">'
         return (
-            '<tr class="actual" title="This row is current progress extrapolated">'
+            tr
+            + "<td>{}</td>"
             "<td>{:,.1f}</td>"
             "<td>{:,.1f}</td>"
             "<td>{:,.1f}</td>"
@@ -82,6 +92,7 @@ def render_goal_row(gp: GoalProgress, goal_reached: bool = False) -> str:
             "<td></td>"
             "</tr>"
         ).format(
+            gp.year,
             gp.current_extrapolated,
             gp.avg_so_far_per_day,
             7 * gp.avg_so_far_per_day,
@@ -90,6 +101,7 @@ def render_goal_row(gp: GoalProgress, goal_reached: bool = False) -> str:
 
     row = (
         "<tr>"
+        "<td></td>"
         "<td>{:,.1f}</td>"
         "<td>{:,.1f}</td>"
         "<td>{:,.1f}</td>"
@@ -160,35 +172,57 @@ def compute_goal_stats(
     cumul_per_day: dict[datetime.date, float | None],
     goals: list[int],
     days: list[datetime.date],
+    cumul_previous: dict[int, dict[datetime.date, float | None]],
 ) -> list[tuple[GoalProgress, bool]]:
-    """Compute goal stats for each goal distance, with the 'actual' extrapolated
-    row inserted at the appropriate position."""
-    result = []
-    already_added_actual = False
+    """Compute goal stats for each goal distance and year, sorted descending
+    by total (goal distance, year-end total, or current extrapolated).
 
+    Year/actual rows are placed before goal rows with the same total."""
+    today = datetime.date.today()
+    current_year = today.year
+
+    # (GoalProgress, goal_reached, sort_key)
+    # Sort key: (total, priority) where priority 1 = year rows (sort first),
+    # 0 = goal rows, when totals are equal.
+    rows: list[tuple[GoalProgress, bool, tuple[float, int]]] = []
+
+    # Goal rows
     for goal in goals:
         goal_progress = GoalProgress()
         goal_progress.calculate_goal_stats(cumul_per_day, goal, days)
         goal_reached = goal_progress.ran_so_far >= goal
+        rows.append((goal_progress, goal_reached, (goal_progress.goal, 0)))
 
-        if goal_progress.current_extrapolated >= goal and not already_added_actual:
-            already_added_actual = True
-            actual = GoalProgress(actual=True)
-            # The goal distance we add here does not matter, we only care to
-            # have progress and such in it.
-            actual.calculate_goal_stats(cumul_per_day, 1, days)
-            result.append((actual, False))
+    # Actual row (current year extrapolated)
+    actual = GoalProgress(actual=True)
+    # The goal distance we add here does not matter, we only care to
+    # have progress and such in it.
+    actual.calculate_goal_stats(cumul_per_day, 1, days)
+    actual.year = current_year
+    rows.append((actual, False, (actual.current_extrapolated, 1)))
 
-        result.append((goal_progress, goal_reached))
+    # Previous year rows
+    days_passed = today.timetuple().tm_yday
+    for year, cumul in cumul_previous.items():
+        year_end_total = cumul[datetime.date(year=year, month=12, day=31)]
+        assert year_end_total is not None
+        try:
+            lookup_date = today.replace(year=year)
+        except ValueError:
+            # Feb 29 in a non-leap year: fall back to Feb 28
+            lookup_date = today.replace(year=year, day=28)
+        ran_on_this_date = cumul[lookup_date]
+        assert ran_on_this_date is not None
 
-    if not already_added_actual:
-        actual = GoalProgress(actual=True)
-        # The goal distance we add here does not matter, we only care to
-        # have progress and such in it.
-        actual.calculate_goal_stats(cumul_per_day, 1, days)
-        result.append((actual, False))
+        prev = GoalProgress(actual=True)
+        prev.year = year
+        prev.ran_so_far = ran_on_this_date
+        prev.avg_so_far_per_day = ran_on_this_date / days_passed
+        prev.current_extrapolated = year_end_total
+        rows.append((prev, False, (year_end_total, 1)))
 
-    return result
+    rows.sort(key=lambda r: r[2], reverse=True)
+    return [(gp, reached) for gp, reached, _ in rows]
 
 
 def create_goals_table(goal_stats: list[tuple[GoalProgress, bool]]):
@@ -198,6 +232,7 @@ def create_goals_table(goal_stats: list[tuple[GoalProgress, bool]]):
     # Header
     result += (
         "<tr>"
+        '<th rowspan="2"></th>'
         '<th style="text-align: center" colspan="3">Goal</th>'
         '<th style="text-align: center" colspan="2">So Far</th>'
         '<th style="text-align: center" colspan="3">To Go</th>'
@@ -326,7 +361,9 @@ def main():
     }
 
     # Compute goal stats
-    goal_stats = compute_goal_stats(cumul_per_day, GOAL_DISTANCES, years_days)
+    goal_stats = compute_goal_stats(
+        cumul_per_day, GOAL_DISTANCES, years_days, cumul_previous
+    )
 
     # Generate HTML
     html = build_html_document(cumul_per_day, cumul_previous, goal_stats, years_days)
