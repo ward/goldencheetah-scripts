@@ -9,6 +9,7 @@ GOAL_DISTANCES = [5000, 4000, 3000, 2500, 2000, 1000]
 OUTPUT_DIR = "./output"
 OUTPUT_FILE = "./output/5mm.html"
 CSS_FILE = "5mm.css"
+JS_FILE = "5mm.js"
 
 # Configure matplotlib
 # Default is [6.4, 4.8] (width, height)
@@ -17,6 +18,7 @@ plt.rcParams["figure.figsize"] = [12, 8]
 
 class GoalProgress:
     actual: bool
+    """Indicates the progress is this or a previous year's actual running"""
 
     year: int | None
     """The year this row represents, or None for goal rows"""
@@ -240,10 +242,10 @@ def create_goals_table(goal_stats: list[tuple[GoalProgress, bool]]):
     )
     result += (
         "<tr>"
-        "<th>total</th>"
+        '<th class="sortable" data-col="1">total</th>'
         "<th>/d</th>"
         "<th>/w</th>"
-        "<th>goal</th>"
+        '<th class="sortable" data-col="4"></th>'
         "<th>diff</th>"
         "<th>total</th>"
         "<th>/d</th>"
@@ -322,6 +324,13 @@ def html_css():
         return '<style type="text/css">' + contents + "</style>"
 
 
+def html_js():
+    """Read JS file and return it wrapped in a script tag."""
+    with open(JS_FILE, "r") as js:
+        contents = js.read()
+        return "<script>" + contents + "</script>"
+
+
 def build_html_document(cumul_per_day, cumul_previous, goal_stats, years_days):
     """Build the complete HTML document with chart and table."""
     now = datetime.date.today()
@@ -330,6 +339,7 @@ def build_html_document(cumul_per_day, cumul_previous, goal_stats, years_days):
         + "<html>"
         + '<head><meta charset="utf-8" />'
         + html_css()
+        + html_js()
         + "<title>5 MEGA METER</title>"
         + "</head><body>"
         + create_svg(cumul_per_day, cumul_previous, years_days)

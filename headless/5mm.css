@@ -16,6 +16,12 @@ table {
 th {
   border-bottom: 1px solid black;
 }
+th.sortable {
+  cursor: pointer;
+}
+th.sortable::after {
+  content: " ⇅";
+}
 /* Only left, we are right aligning so that padding makes it look ugly with the borders */
 td {
   padding-left: 0.3em;

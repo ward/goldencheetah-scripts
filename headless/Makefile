@@ -21,7 +21,7 @@ output/%.html: %.py rideDB.pickle goldencheetah.py
 # This ensures that if a css file with same name as python file exists, the
 # python file is considered new and thus needs to be rerun to produce the
 # corresponding output file.
-%.py: %.css
+%.py: %.css %.js
 	touch $@
 
 sync: all
