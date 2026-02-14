@@ -1,4 +1,42 @@
 document.addEventListener('DOMContentLoaded', function() {
+  // SVG hover highlighting: hovering a line, legend entry, or table year row
+  // dims all other series
+  var svg = document.querySelector('svg');
+  if (svg) {
+    var svgElements = svg.querySelectorAll(
+      '[id^="year-"], [id^="goal-"], [id^="legend-line-"], [id^="legend-text-"]'
+    );
+    var tableRows = document.querySelectorAll('tr[data-series]');
+
+    function getSeriesKey(el) {
+      return el.dataset.series || el.id.replace(/^legend-(?:line|text)-/, '');
+    }
+
+    function highlight(key) {
+      svgElements.forEach(function(other) {
+        if (getSeriesKey(other) !== key) {
+          other.classList.add('dimmed');
+        }
+      });
+    }
+
+    function clearHighlight() {
+      svgElements.forEach(function(other) {
+        other.classList.remove('dimmed');
+      });
+    }
+
+    svgElements.forEach(function(el) {
+      el.addEventListener('mouseenter', function() { highlight(getSeriesKey(el)); });
+      el.addEventListener('mouseleave', clearHighlight);
+    });
+
+    tableRows.forEach(function(tr) {
+      tr.addEventListener('mouseenter', function() { highlight(tr.dataset.series); });
+      tr.addEventListener('mouseleave', clearHighlight);
+    });
+  }
+
   document.querySelectorAll('.sortable').forEach(function(th) {
     th.addEventListener('click', function() {
       var table = th.closest('table');

@@ -79,9 +79,9 @@ def render_goal_row(gp: GoalProgress, goal_reached: bool = False) -> str:
     if gp.actual:
         current_year = datetime.date.today().year
         if gp.year == current_year:
-            tr = '<tr class="actual" title="This row is current progress extrapolated">'
+            tr = f'<tr class="actual" data-series="year-{gp.year}" title="This row is current progress extrapolated">'
         else:
-            tr = '<tr class="year">'
+            tr = f'<tr class="year" data-series="year-{gp.year}">'
         return (
             tr + "<td>{}</td>"
             "<td>{:,.1f}</td>"
@@ -264,38 +264,56 @@ def create_svg(cumul_per_day, cumul_previous, days):
     """Create an SVG chart showing yearly running progress."""
     fig, ax = plt.subplots()
 
+    series_keys = []
+
     # Straight lines towards goal distance
     for goal_distance in GOAL_DISTANCES:
-        ax.plot(
+        (line,) = ax.plot(
             days,
             create_goal_values(goal_distance, days),
             "--",
             color="lightgrey",
             label=goal_distance,
         )
+        key = f"goal-{goal_distance}"
+        line.set_gid(key)
+        series_keys.append(key)
 
     # Previous years
     current_year = datetime.datetime.now().year
     for year, cumul_for_year in cumul_previous.items():
         # Make the two most recent years fatter
         width = {1: 3, 2: 2}.get(current_year - year, 1)
-        ax.plot(
+        (line,) = ax.plot(
             days,
             [cumul_for_year[day.replace(year=year)] for day in days],
             label=year,
             linewidth=width,
         )
+        key = f"year-{year}"
+        line.set_gid(key)
+        series_keys.append(key)
 
     # Current year
-    ax.plot(
+    (line,) = ax.plot(
         days,
         [cumul_per_day[day] for day in days],
         linewidth=5,
         label="Distance run",
     )
+    key = f"year-{current_year}"
+    line.set_gid(key)
+    series_keys.append(key)
 
     ax.grid(axis="y")
-    ax.legend()
+    legend = ax.legend()
+    # This assumes legend order is the same as plotting order, which I think
+    # holds by default
+    for key, leg_line, leg_text in zip(
+        series_keys, legend.get_lines(), legend.get_texts()
+    ):
+        leg_line.set_gid(f"legend-line-{key}")
+        leg_text.set_gid(f"legend-text-{key}")
     ax.set_xlabel("Date")
     ax.set_ylabel("Distance (km)")
     ax.set_title("5 MEGA METER")

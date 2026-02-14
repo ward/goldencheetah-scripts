@@ -26,6 +26,17 @@ th.sortable::after {
 td {
   padding-left: 0.3em;
 }
+/* SVG hover highlighting */
+svg g[id^="year-"],
+svg g[id^="goal-"],
+svg g[id^="legend-line-"],
+svg g[id^="legend-text-"] {
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+svg g.dimmed {
+  opacity: 0.1;
+}
 /* Special row in table for current progress */
 tr.actual {
   text-decoration: underline dotted;
