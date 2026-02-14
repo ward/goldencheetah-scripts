@@ -80,7 +80,7 @@ class Activity:
                 i = ActivityInterval(interval)
                 if i.name != "Entire Activity":
                     self.intervals.append(i)
-            except:
+            except Exception:
                 pass
 
     def __str__(self):

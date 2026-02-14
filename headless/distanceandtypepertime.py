@@ -30,7 +30,7 @@ class RunSummaryPer:
     def colour(self):
         try:
             return self.colourmap[self.label]
-        except:
+        except KeyError:
             return "#000000"
 
     def normalise_name(name):

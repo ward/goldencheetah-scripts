@@ -31,3 +31,11 @@ clean:
 	rm rideDB.json
 	rm rideDB.pickle
 	rm -r output/
+
+format:
+	ruff format .
+
+check:
+	ruff check .
+
+lint: format check
