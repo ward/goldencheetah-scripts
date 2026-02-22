@@ -18,7 +18,8 @@ plt.rcParams["figure.figsize"] = [12, 8]
 
 class GoalProgress:
     actual: bool
-    """Indicates the progress is this or a previous year's actual running"""
+    """Indicates the progress is this year's or a previous year's actual
+    running. As opposed to an artificial goal"""
 
     year: int | None
     """The year this row represents, or None for goal rows"""
@@ -43,9 +44,15 @@ class GoalProgress:
 
     avg_so_far_per_day: float
 
+    current_year_ran_so_far: float | None
+    """For previous year rows: the current year's ran_so_far, for computing
+    diff. I believe that the artificial goal rows use the ran_so_far property
+    instead."""
+
     def __init__(self, actual: bool = False):
         self.actual = actual
         self.year = None
+        self.current_year_ran_so_far = None
 
     def calculate_goal_stats(
         self,
@@ -82,17 +89,16 @@ def render_goal_row(gp: GoalProgress, goal_reached: bool = False) -> str:
             tr = f'<tr class="actual" data-series="year-{gp.year}" title="This row is current progress extrapolated">'
         else:
             tr = f'<tr class="year" data-series="year-{gp.year}">'
-        return (
+        diff_cell = "<td></td>"
+        if gp.current_year_ran_so_far is not None:
+            diff = gp.current_year_ran_so_far - gp.ran_so_far
+            diff_cell = f"<td>{diff:,.1f}</td>"
+        row = (
             tr + "<td>{}</td>"
             "<td>{:,.1f}</td>"
             "<td>{:,.1f}</td>"
             "<td>{:,.1f}</td>"
             "<td>{:,.1f}</td>"
-            "<td></td>"
-            "<td></td>"
-            "<td></td>"
-            "<td></td>"
-            "</tr>"
         ).format(
             gp.year,
             gp.current_extrapolated,
@@ -100,6 +106,18 @@ def render_goal_row(gp: GoalProgress, goal_reached: bool = False) -> str:
             7 * gp.avg_so_far_per_day,
             gp.ran_so_far,
         )
+        row += diff_cell
+        if goal_reached:
+            row += "<td>✓</td><td>✓</td><td>✓</td>"
+        elif gp.current_year_ran_so_far is not None:
+            to_go = gp.current_extrapolated - gp.current_year_ran_so_far
+            days_left = (datetime.date(current_year, 12, 31) - datetime.date.today()).days
+            per_day = to_go / days_left if days_left > 0 else 0
+            row += f"<td>{to_go:,.1f}</td><td>{per_day:,.1f}</td><td>{7 * per_day:,.1f}</td>"
+        else:
+            row += "<td></td><td></td><td></td>"
+        row += "</tr>"
+        return row
 
     row = (
         "<tr>"
@@ -201,6 +219,7 @@ def compute_goal_stats(
     # have progress and such in it.
     actual.calculate_goal_stats(cumul_per_day, 1, days)
     actual.year = current_year
+    current_ran_so_far = actual.ran_so_far
     rows.append((actual, False, (actual.current_extrapolated, 1)))
 
     # Previous year rows
@@ -221,7 +240,9 @@ def compute_goal_stats(
         prev.ran_so_far = ran_on_this_date
         prev.avg_so_far_per_day = ran_on_this_date / days_passed
         prev.current_extrapolated = year_end_total
-        rows.append((prev, False, (year_end_total, 1)))
+        prev.current_year_ran_so_far = current_ran_so_far
+        year_surpassed = current_ran_so_far >= year_end_total
+        rows.append((prev, year_surpassed, (year_end_total, 1)))
 
     rows.sort(key=lambda r: r[2], reverse=True)
     return [(gp, reached) for gp, reached, _ in rows]
