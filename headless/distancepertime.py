@@ -6,10 +6,10 @@ from io import BytesIO
 import goldencheetah
 
 
-def sum_per_month(list_of_runs):
+def sum_per_month(list_of_runs: list[goldencheetah.Activity]) -> dict[str, float]:
     """Every run is an Activity, just start counting distance. Not very generic evidently."""
-    months = {}
-    for run in runs:
+    months: dict[str, float] = {}
+    for run in list_of_runs:
         month = "{}-{}".format(run.date.year, run.date.month)
         try:
             months[month] += run.distance
@@ -18,9 +18,9 @@ def sum_per_month(list_of_runs):
     return months
 
 
-def sum_per_year(list_of_runs):
-    per_year = {}
-    for run in runs:
+def sum_per_year(list_of_runs: list[goldencheetah.Activity]) -> dict[str, float]:
+    per_year: dict[str, float] = {}
+    for run in list_of_runs:
         # Turning to string for consistency with the other summing.
         # Specifically it otherwise confuses matplotlib's bar coordinates.
         # The string one would go 0..len()-1, while this otherwise would go
@@ -35,7 +35,7 @@ def sum_per_year(list_of_runs):
 
 def sum_week(week_of_runs):
     sum = 0
-    for day, runs_on_day in week_of_runs.items():
+    for _day, runs_on_day in week_of_runs.items():
         for run in runs_on_day:
             sum += run.distance
     return sum
@@ -54,9 +54,11 @@ for week in runs.keys():
 # Values: Distance summed up
 
 
-def create_svg(distance_per_time, timeframe):
+def create_svg(distance_per_time, timeframe, only_most_recent: int | None = None):
     fig, ax = plt.subplots()
-    time_units = list(distance_per_time.keys())[-20:]
+    time_units = list(distance_per_time.keys())
+    if only_most_recent is not None:
+        time_units = time_units[-only_most_recent:]
     distances = [distance_per_time[time_unit] for time_unit in time_units]
     ax.bar(time_units, distances)
 
@@ -93,7 +95,7 @@ def create_svg(distance_per_time, timeframe):
 
 # Change the plot sizes
 # Default is [6.4, 4.8] (width, height)
-plt.rcParams["figure.figsize"] = [10, 6]
+plt.rcParams["figure.figsize"] = [14, 6]
 # SVG font defaults to "path", making it look the same in every viewer.
 # Setting it to none makes it use actual text so font choice is left to the viewer.
 # plt.rcParams["svg.fonttype"] = "none"
@@ -105,8 +107,8 @@ html = (
     + '<head><meta charset="utf-8" />'
     + "<title>Distance per week</title>"
     + "</head><body>"
-    + create_svg(runs, "week")
-    + create_svg(per_month, "month")
+    + create_svg(runs, "week", 52)
+    + create_svg(per_month, "month", 36)
     + create_svg(per_year, "year")
     + "<footer><p>Generated on {}.</p></footer>".format(now)
     + "</body></html>"

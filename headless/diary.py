@@ -10,6 +10,7 @@ import goldencheetah
 NEWLINE = chr(10)
 
 HARDCODED_EXCUSES = {
+    datetime.date(2026, 2, 16): "Less time / lazy",
     datetime.date(2025, 12, 30): "No time",
     datetime.date(2025, 12, 27): "Travel",
     datetime.date(2025, 12, 5): "Sick",
@@ -133,6 +134,7 @@ def workout_importance(workout):
         "speed": 7,
         "threshold": 6,
         "m-pace": 6,
+        "2mmol": 6,
         "endurance": 5,
         "ga": 4,
         "recovery": 3,
