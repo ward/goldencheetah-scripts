@@ -18,11 +18,11 @@ plt.rcParams["figure.figsize"] = [12, 8]
 
 class GoalProgress:
     actual: bool
-    """Indicates the progress is this year's or a previous year's actual
-    running. As opposed to an artificial goal"""
+    """Indicates the GoalProgress object is this year's or a previous year's
+    actual running. As opposed to an artificial goal"""
 
     year: int | None
-    """The year this row represents, or None for goal rows"""
+    """The year, e.g. 2026, this row represents, or None for goal rows"""
 
     goal: float
     """Distance to run in the current year"""
@@ -41,6 +41,12 @@ class GoalProgress:
 
     current_extrapolated: float
     """Takes distance run this year to date and extrapolates to the entire year"""
+
+    avg_per_day: float
+    """Distance per day across the entire year. For goals this is the same as
+    avg_so_far_per_day, as we assume entirely steady year round. For current
+    year extrapolated, this is also the same as avg_so_far_per_day, as we
+    assume steady continuation of what happened so far."""
 
     avg_so_far_per_day: float
 
@@ -79,6 +85,10 @@ class GoalProgress:
         days_passed = (today - days[0]).days + 1
         total_days = (days[-1] - days[0]).days + 1
         self.avg_so_far_per_day = self.ran_so_far / days_passed
+        # This function only gets called for goals (steady throughout the year)
+        # and extrapolated current year (where we expect the rest of the year
+        # to be steady from today based on what we did so far)
+        self.avg_per_day = self.avg_so_far_per_day
         self.current_extrapolated = self.avg_so_far_per_day * total_days
 
 
@@ -102,8 +112,8 @@ def render_goal_row(gp: GoalProgress, goal_reached: bool = False) -> str:
         ).format(
             gp.year,
             gp.current_extrapolated,
-            gp.avg_so_far_per_day,
-            7 * gp.avg_so_far_per_day,
+            gp.avg_per_day,
+            7 * gp.avg_per_day,
             gp.ran_so_far,
         )
         row += diff_cell
@@ -239,6 +249,8 @@ def compute_goal_stats(
         prev.year = year
         prev.ran_so_far = ran_on_this_date
         prev.avg_so_far_per_day = ran_on_this_date / days_passed
+        total_days = (days[-1] - days[0]).days + 1
+        prev.avg_per_day = year_end_total / total_days
         prev.current_extrapolated = year_end_total
         prev.current_year_ran_so_far = current_ran_so_far
         year_surpassed = current_ran_so_far >= year_end_total
