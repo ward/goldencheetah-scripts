@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 
 import goldencheetah
 
-
 runs = goldencheetah.get_all_activities(sport="Run")
 
 # Lazier than looping ourselves, probably a bit slower though.
@@ -98,12 +97,43 @@ def make_table(runs):
     return table
 
 
-def h_index(sorted_runs: list[goldencheetah.Activity]):
+def number_to_subindex_str(n: int) -> str:
+    if n < 0:
+        raise RuntimeError
+
+    if n == 0:
+        return "₀"
+
+    subindices = {
+        0: "₀",
+        1: "₁",
+        2: "₂",
+        3: "₃",
+        4: "₄",
+        5: "₅",
+        6: "₆",
+        7: "₇",
+        8: "₈",
+        9: "₉",
+    }
+    res = ""
+    while n > 0:
+        last_digit = n % 10
+        res = subindices[last_digit] + res
+        n = n // 10
+    return res
+
+
+def h_index(sorted_runs: list[goldencheetah.Activity], multiplier=1):
     """
     Sort of h-index idea from academia. Basically, find the distance n such
     that you have at least n runs that are that distance or longer.
 
     Expects given runs to be sorted from longest to shortest distance.
+
+    Returns:
+        distance that has at least multiplier * distance of activities
+        number of activities at the next distance up
     """
     total = 0
     count_at_current_distance = 0
@@ -116,12 +146,23 @@ def h_index(sorted_runs: list[goldencheetah.Activity]):
         else:
             count_at_current_distance = 1
             curr_distance = d
-        if total >= d:
+        if total >= d * multiplier:
             return d, total - count_at_current_distance
     return 0, total - count_at_current_distance
 
 
-h_idx_dist, total_at_h_idx_up = h_index(longest_distance_runs)
+def h_index_msg(sorted_runs: list[goldencheetah.Activity], multiplier=1):
+    """
+    Runs sorted from longest to shortest.
+    """
+    h_idx_dist, total_at_h_idx_up = h_index(sorted_runs, multiplier)
+    return "<p>Running distance h{}-index: {} km ({} over {} km for next level).</p>".format(
+        number_to_subindex_str(multiplier),
+        h_idx_dist,
+        ((h_idx_dist + 1) * multiplier - total_at_h_idx_up),
+        h_idx_dist + 1,
+    )
+
 
 now = datetime.date.today()
 html = (
@@ -135,9 +176,15 @@ html = (
     + make_table(recent_longest_distance_runs[0:10])
     + "<p>Recent longest time</p>"
     + make_table(recent_longest_time_runs[0:10])
-    + "<p>Running distance h-index: {} km ({} over {} km for next level).</p>".format(
-        h_idx_dist, (h_idx_dist + 1 - total_at_h_idx_up), h_idx_dist + 1
-    )
+    + h_index_msg(longest_distance_runs, 1)
+    + h_index_msg(longest_distance_runs, 2)
+    + h_index_msg(longest_distance_runs, 3)
+    + h_index_msg(longest_distance_runs, 5)
+    + h_index_msg(longest_distance_runs, 10)
+    + h_index_msg(longest_distance_runs, 20)
+    + h_index_msg(longest_distance_runs, 30)
+    + h_index_msg(longest_distance_runs, 50)
+    + h_index_msg(longest_distance_runs, 100)
     + "<footer><p>Generated on {}.</p></footer>".format(now)
     + "</body></html>"
 )
