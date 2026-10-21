@@ -19,6 +19,10 @@ def parse_ridedb():
 class Activity:
     distance: float
     """Distance of the activity in kilometer. 0 if no distance metric found"""
+    date: datetime.datetime
+    datefromfilename: datetime.datetime
+    """Timezone support is a mess. Filename seems to at least keep the local time of the activity?"""
+    sport: str
 
     def __init__(self, ridedb_entry):
         """Parse from a ridedb entry"""
@@ -28,6 +32,10 @@ class Activity:
         # a GPS track to use for a location.
         self.date = datetime.datetime.strptime(
             ridedb_entry["date"], "%Y/%m/%d %H:%M:%S %Z"
+        )
+        # See if this helps time
+        self.datefromfilename = datetime.datetime.strptime(
+            ridedb_entry["filename"], "%Y_%m_%d_%H_%M_%S.json"
         )
         self.sport = ridedb_entry["sport"]
         try:
@@ -138,7 +146,7 @@ def pickle_to_activities() -> list[Activity]:
         return activities
 
 
-def get_all_activities(sport="Run") -> list[Activity]:
+def get_all_activities(sport : str | None ="Run") -> list[Activity]:
     """Reads activities from pickle. Filters on given sport. No filtering if
     sport is None."""
     activities = pickle_to_activities()

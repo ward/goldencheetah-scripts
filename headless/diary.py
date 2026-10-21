@@ -384,14 +384,16 @@ def adjust_date_of_activity(activity: goldencheetah.Activity):
     # Maybe I should try using filename instead, that seems to be localtime.
     # Will have to find out whether that also is correct for activities done in
     # one timezone, imported into GC in another timezone.
-    for kw in activity.keywords:
-        if kw.startswith("tz:utc"):
-            try:
-                offset = int(kw[6:])
-                activity.date = activity.date + datetime.timedelta(hours=offset)
-                return
-            except ValueError:
-                pass
+    # for kw in activity.keywords:
+    #     if kw.startswith("tz:utc"):
+    #         try:
+    #             offset = int(kw[6:])
+    #             activity.date = activity.date + datetime.timedelta(hours=offset)
+    #             return
+    #         except ValueError:
+    #             pass
+    # Give this a try instead for now
+    activity.date = activity.datefromfilename
 
 
 all_activities = goldencheetah.get_all_activities(sport=None)
